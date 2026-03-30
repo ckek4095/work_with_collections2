@@ -1,9 +1,9 @@
 package org.example.comands;
 
+import java.io.IOException;
+
 import org.example.elems.LabWork;
 import org.example.managers.CollectionManager;
-
-import java.io.IOException;
 
 /**
  * Команда 'add'. Добавляет новый элемент в коллекцию.
@@ -25,7 +25,7 @@ public class Add implements Command {
     }
 
     @Override
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         LabWork elem;
         if (args.length >= 7) {
             elem = input.inputLab(args);
@@ -33,7 +33,7 @@ public class Add implements Command {
             elem = input.inputLab();
         }
         collectionManager.setLabWork(elem);
-        System.out.println(">>> Элемент успешно добавлен!");
+        return ">>> Элемент успешно добавлен!";
     }
 }
 

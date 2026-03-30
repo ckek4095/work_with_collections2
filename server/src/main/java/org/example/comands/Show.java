@@ -1,10 +1,9 @@
 package org.example.comands;
 
+import java.io.IOException;
+
 import org.example.elems.LabWork;
 import org.example.managers.CollectionManager;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Команда 'show'. Выводит коллекцию в строчном представлении.
@@ -19,23 +18,28 @@ public class Show implements Command{
         this.collectionManager = collectionManager;
     }
 
-    public void execute() throws IOException {
-        if (collectionManager.getCollection().isEmpty()) System.out.println("Коллекция пуста(((");
+    public String execute() throws IOException {
+        if (collectionManager.getCollection().isEmpty()) return "Коллекция пуста(((";
         else {
+            String res = "";
             for (LabWork elem : collectionManager.getCollection()) {
-                showElem(elem);
+                res += (showElem(elem));
             }
+            return res;
         }
+
     }
 
-    public void showElem(LabWork elem) {
-        System.out.println("----------------------------------------------------------");
-        System.out.println("ID: " + elem.getId());
-        System.out.println("Имя: " + elem.getName());
-        System.out.println("Координаты: x = " + elem.getCoordinates().getX() + "; y = " + elem.getCoordinates().getY());
-        System.out.println("Дата создания: " + elem.getCreationDate());
-        System.out.println("Минимальная оценка: " + elem.getMinimalPoint());
-        System.out.println("Сложность: " + elem.getDifficulty());
-        System.out.println("Дисциплина: Наименование - \"" + elem.getDiscipline().getName() + "\"; Количество лабораторных: " + elem.getDiscipline().getLabsCount());
+    public String showElem(LabWork elem) {
+        String elemStr = "";
+        elemStr += "----------------------------------------------------------\n";
+        elemStr += "ID: " + elem.getId() + "\n";
+        elemStr += "Имя: " + elem.getName() + "\n";
+        elemStr += "Координаты: x = " + elem.getCoordinates().getX() + "; y = " + elem.getCoordinates().getY() + "\n";
+        elemStr += "Дата создания: " + elem.getCreationDate() + "\n";
+        elemStr += "Минимальная оценка: " + elem.getMinimalPoint() + "\n";
+        elemStr += "Сложность: " + elem.getDifficulty() + "\n";
+        elemStr += "Дисциплина: Наименование - \"" + elem.getDiscipline().getName() + "\"; Количество лабораторных: " + elem.getDiscipline().getLabsCount() + "\n";
+        return elemStr;
     }
 }

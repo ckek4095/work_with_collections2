@@ -1,9 +1,8 @@
 package org.example.comands;
 
-import org.example.exceptions.ExitException;
-
 import java.io.IOException;
-import java.util.List;
+
+import org.example.exceptions.ExitException;
 
 /**
  * Команда 'exit'. Завершает работу программы

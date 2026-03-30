@@ -1,9 +1,8 @@
 package org.example.comands;
 
-import org.example.managers.CollectionManager;
-
 import java.io.IOException;
-import java.util.List;
+
+import org.example.managers.CollectionManager;
 
 /**
  * Команда 'clear'. Очищает коллекцию
@@ -18,8 +17,8 @@ public class Clear implements Command{
         this.collectionManager = collectionManager;
     }
 
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         collectionManager.getCollection().clear();
-        System.out.println("Коллекция удачно очищена)");
+        return "Коллекция удачно очищена)";
     }
 }

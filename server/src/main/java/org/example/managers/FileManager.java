@@ -43,7 +43,7 @@ public class FileManager {
 
     public Set<LabWork> readFromFile() throws IOException {
 
-        String path = System.getenv(envVar);
+        String path = envVar;
 
         if (path == null) {
             System.out.println("Ошибка: Переменная окружения " + envVar + " не установлена!!!");

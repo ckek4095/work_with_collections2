@@ -1,1 +1,1 @@
-[save_history, show, save_history]
+[save_history]
