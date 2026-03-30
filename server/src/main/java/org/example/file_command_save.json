@@ -1,0 +1,32 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Лабораторная работа 1",
+    "coordinates": {
+      "x": 10,
+      "y": 100
+    },
+    "creationDate": "2024-01-15T14:30:00",
+    "minimalPoint": 5.5,
+    "difficulty": "NORMAL",
+    "discipline": {
+      "name": "Математика",
+      "labsCount": 32
+    }
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Лабораторная работа 2",
+    "coordinates": {
+      "x": 20,
+      "y": 200
+    },
+    "creationDate": "2024-01-15T15:45:00",
+    "minimalPoint": 3.0,
+    "difficulty": "HARD",
+    "discipline": {
+      "name": "Физика",
+      "labsCount": 48
+    }
+  }
+]

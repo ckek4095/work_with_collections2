@@ -1,0 +1,11 @@
+// Блин круто классно скрипт
+
+help
+show
+
+
+add dfghjk 6789 45678 5678 easy hgjjkl 5678
+update 550e8400-e29b-41d4-a716-446655440000 dfghjk 6789 45678 5678 easy hgjjkl 5678
+// добавили и покажем
+show
+execute_script
