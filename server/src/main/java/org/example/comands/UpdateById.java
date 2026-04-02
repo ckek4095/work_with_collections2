@@ -1,12 +1,10 @@
 package org.example.comands;
 
+import java.io.IOException;
+
 import org.example.elems.LabWork;
 import org.example.exceptions.ElementDidntExistException;
 import org.example.managers.CollectionManager;
-import org.example.managers.InputBR;
-
-import java.io.IOException;
-
 import static org.example.managers.CollectionManager.validateLabWork;
 
 
@@ -31,14 +29,8 @@ public class UpdateById implements Command {
     }
 
     @Override
-    public void execute() throws IOException {
-        String idStr;
-        if (args.length == 0) {
-            System.out.print(">>> Введите ID: ");
-            idStr = InputBR.br.readLine();
-        } else {
-            idStr = args[0].trim();
-        }
+    public String execute() throws IOException {
+        String idStr = args[0];
 
         LabWork existing = null;
         for (LabWork elem : collectionManager.getCollection()) {
@@ -68,6 +60,6 @@ public class UpdateById implements Command {
         }
 
         existing.update(updated);
-        System.out.println(">>> Элемент с id " + idStr + " успешно обновлен!");
+        return ">>> Элемент с id " + idStr + " успешно обновлен!";
     }
 }

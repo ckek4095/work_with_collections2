@@ -1,13 +1,15 @@
 package org.example.comands;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+
 import org.example.managers.CollectionManager;
 import org.example.managers.LocalDateAdapter;
 
-import java.io.*;
-import java.time.LocalDateTime;
-import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Команда 'save'. Сохраняет коллекцию в файл
@@ -27,8 +29,8 @@ public class Save implements Command{
     }
 
     @Override
-    public void execute() throws IOException {
-        String path = System.getenv("LAB_DATA_PATH");
+    public String execute() throws IOException {
+        String path = "/home/enotpelmen/projects/work_with_collections2/server/src/main/java/org/example/file_with_data.json";
         String text = gson.toJson(collectionManager.getCollection());
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path))) {
             if (path == null || path.trim().isEmpty()) {
@@ -36,7 +38,7 @@ public class Save implements Command{
             }
             writer.write(text);
             writer.flush();
-            System.out.println("Сохранение выполнено)");
+            return "Сохранение выполнено)";
         } catch (IOException e) {
             throw new IOException("Ошибка ввода-вывода");
         }

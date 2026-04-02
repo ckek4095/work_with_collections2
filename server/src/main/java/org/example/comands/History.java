@@ -18,21 +18,22 @@ public class History implements Command {
 
 
     @Override
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         int length = history.toArray().length;
         System.out.println("История команд: ");
 
         // Определяем количество элементов для вывода (не больше 12)
         int count = Math.min(length, 12);
+        String result = "";
 
         for (int i = 0; i < count; i++) {
             var elem = history.get(length - 1 - i);
             if (i == 0) {
-                System.out.println(elem + "   <--- последняя команда");
+                result += elem + "   <--- последняя команда";
             } else {
-                System.out.println(elem);
+                result += elem;
             }
         }
-        System.out.println();
+        return result;
     }
 }

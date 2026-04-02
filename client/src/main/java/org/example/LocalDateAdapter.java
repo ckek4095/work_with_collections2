@@ -1,5 +1,4 @@
-package org.example.managers;
-
+package org.example;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,10 +10,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-
-/**
- * Вспомогательный класс LocalDateAdapter. Позволяет правильно работать со временем в JSON
- */
 
 public class LocalDateAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
 // 

@@ -5,9 +5,13 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 
 import org.example.comands.Command;
 import org.example.exceptions.ExitException;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Класс Runner. Отвечает за последовательный запуск команд,
@@ -18,16 +22,19 @@ public class Runner {
     private CommandManager commandManager;
     private DatagramSocket socket;
     private byte[] receiveBuffer;
+    private Gson gson;
     private static final int BUFFER_SIZE = 65536;
-    private static final int SOCKET_TIMEOUT = 60000; // 60 секунд таймаут
+    private static final int SOCKET_TIMEOUT = 60000;
+    private boolean isRunning;
 
     public Runner(CommandManager commandManager, DatagramSocket socket) {
         this.commandManager = commandManager;
         this.socket = socket;
         this.receiveBuffer = new byte[BUFFER_SIZE];
+        this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+        this.isRunning = true;
         
         try {
-            // Устанавливаем таймаут для сокета, чтобы не блокироваться вечно
             this.socket.setSoTimeout(SOCKET_TIMEOUT);
         } catch (SocketException e) {
             System.err.println("Не удалось установить таймаут для сокета: " + e.getMessage());
@@ -35,83 +42,59 @@ public class Runner {
     }
 
     public void run() throws IOException {
-
-        receiveBuffer = new byte[BUFFER_SIZE];
         System.out.println("Сервер запущен и ожидает команды...");
         
-        while (true) {
+        while (isRunning) {
             try {
+                // Очищаем буфер
+                Arrays.fill(receiveBuffer, (byte) 0);
+
                 // Создаем пакет для приема данных
                 DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
                 
-                // Принимаем пакет (блокирующий вызов, но с таймаутом)
+                // Принимаем пакет
                 socket.receive(receivePacket);
                 
-                // Сохраняем информацию о клиенте для ответа
+                // Сохраняем информацию о клиенте
                 java.net.InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
                 
-                // Извлекаем команду из пакета
-                String commandLine = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                commandLine = commandLine.trim();
-                
-                if (commandLine.isEmpty()) {
-                    sendResponse(clientAddress, clientPort, "empty_command", 
-                                "Команда не может быть пустой");
-                    continue;
-                }
+                // Извлекаем и парсим запрос
+                int dataLength = receivePacket.getLength();
+                String jsonData = new String(receiveBuffer, 0, dataLength, "UTF-8");
+                Request clientRequest = gson.fromJson(jsonData, Request.class);
                 
                 System.out.println("Получена команда от " + clientAddress + ":" + clientPort + 
-                                 " -> " + commandLine);
+                                 " -> " + clientRequest.getCommandName() + "; аргументы:" + clientRequest.getArgs());
                 
-                try {
-                    // Разделяем команду и аргументы
-                    String[] parts = commandLine.split("\\s+", 2);
-                    String commandName = parts[0];
-                    String args = parts.length > 1 ? parts[1] : "";
-                    
-                    // Выполняем команду
-                    Command command = commandManager.executeCommand(commandName);
-                    
-                    // Если команда требует аргументов, передаем их
-                    // if (command instanceof org.example.comands.ArgumentCommand) {
-                    //     ((org.example.comands.ArgumentCommand) command).setArgs(args);
-                    // }
-                    
-                    // Выполняем команду и получаем результат
-                    String result = command.execute();
-                    
-                    // Отправляем результат обратно клиенту
-                    sendResponse(clientAddress, clientPort, "success", result);
-                    
-                } catch (ExitException e) {
-                    // Команда выхода
-                    sendResponse(clientAddress, clientPort, "exit", "Сервер завершает работу");
+                // Обрабатываем запрос и получаем ответ
+                Request response = processRequest(clientRequest);
+                
+                // Отправляем ответ клиенту
+                sendResponse(clientAddress, clientPort, response);
+                
+                // Если команда exit, завершаем работу
+                if (response.getCommandName().equals("exit")) {
                     System.out.println("Получена команда выхода, сервер останавливается...");
-                    return;
-                    
-                } catch (Exception e) {
-                    // Ошибка выполнения команды
-                    sendResponse(clientAddress, clientPort, "error", e.getMessage());
-                    System.err.println("Ошибка выполнения команды: " + e.getMessage());
+                    isRunning = false;
+                    break;
                 }
-                
-                // Очищаем буфер для следующего пакета
-                receiveBuffer = new byte[BUFFER_SIZE];
                 
             } catch (SocketTimeoutException e) {
                 // Таймаут - просто продолжаем ждать
-                System.out.println("Ожидание команд... (таймаут " + SOCKET_TIMEOUT/1000 + " сек)");
+                System.out.print(".");
                 continue;
-                
             } catch (SocketException e) {
-                System.out.println("Сокет был закрыт: " + e.getMessage());
+                if (isRunning) {
+                    System.out.println("Сокет был закрыт: " + e.getMessage());
+                }
                 return;
-                
             } catch (IOException e) {
                 System.err.println("Ошибка ввода-вывода: " + e.getMessage());
-                // Продолжаем работу, не завершаем сервер
                 receiveBuffer = new byte[BUFFER_SIZE];
+            } catch (Exception e) {
+                System.err.println("Неожиданная ошибка: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -119,20 +102,66 @@ public class Runner {
     /**
      * Отправляет ответ клиенту
      */
-    private void sendResponse(java.net.InetAddress address, int port, String status, String message) {
+    private void sendResponse(java.net.InetAddress address, int port, Request response) throws IOException {
+        String jsonResponse = gson.toJson(response);
+        byte[] data = jsonResponse.getBytes("UTF-8");
+        
+        DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+        socket.send(packet);
+        
+        System.out.println("Отправлен ответ: " + response.getCommandName() + 
+                         " - " + response.getData());
+    }
+
+    /**
+     * Обрабатывает запрос от клиента
+     */
+    private Request processRequest(Request request) {
+        Request response = new Request();
+        response.setSessionId(request.getSessionId());
+        response.setTimestamp(System.currentTimeMillis());
+        
         try {
-            // Формируем ответ в формате: статус:сообщение
-            String response = status + ":" + message;
-            byte[] data = response.getBytes();
+            String commandName = request.getCommandName();
+            String[] args = request.getArgs();
             
-            DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
-            socket.send(packet);
+            if (commandName == null || commandName.isEmpty()) {
+                response.setCommandName("error");
+                response.setData("Команда не может быть пустой");
+                return response;
+            }
             
-            System.out.println("Отправлен ответ клиенту " + address + ":" + port + 
-                             " [" + status + "]");
+            // Проверка на exit
+            if (commandName.equalsIgnoreCase("exit")) {
+                response.setCommandName("exit");
+                response.setData("Сервер завершает работу");
+                return response;
+            }
             
-        } catch (IOException e) {
-            System.err.println("Не удалось отправить ответ клиенту: " + e.getMessage());
+            // Получаем и выполняем команду
+            Command command = commandManager.executeCommand(commandName, args);
+            
+            // Выполняем команду
+            String result = command.execute();
+            
+            // Формируем успешный ответ
+            response.setCommandName("success");
+            response.setData(result);
+            
+        } catch (ExitException e) {
+            response.setCommandName("exit");
+            response.setData("Получена команда выхода");
+            
+        } catch (Exception e) {
+            response.setCommandName("error");
+            response.setData(e.getMessage());
+            System.err.println("Ошибка выполнения команды: " + e.getMessage());
         }
+        
+        return response;
+    }
+
+    public void stop() {
+        isRunning = false;
     }
 }

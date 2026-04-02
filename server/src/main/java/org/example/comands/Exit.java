@@ -10,7 +10,7 @@ import org.example.exceptions.ExitException;
 
 public class Exit implements Command {
 
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         throw new ExitException("return hihihoho");
     }
 }

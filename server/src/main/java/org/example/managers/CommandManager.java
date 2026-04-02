@@ -1,10 +1,26 @@
 package org.example.managers;
 
-import org.example.comands.*;
-import org.example.exceptions.UnknownCommandException;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.example.comands.Add;
+import org.example.comands.AddIfMax;
+import org.example.comands.AddIfMin;
+import org.example.comands.Clear;
+import org.example.comands.Command;
+import org.example.comands.ExecuteScript;
+import org.example.comands.Exit;
+import org.example.comands.FilterByDiscipline;
+import org.example.comands.FilterStartsWith;
+import org.example.comands.Help;
+import org.example.comands.HelperInputLab;
+import org.example.comands.History;
+import org.example.comands.Info;
+import org.example.comands.RemoveAllBy;
+import org.example.comands.RemoveById;
+import org.example.comands.Show;
+import org.example.comands.UpdateById;
+import org.example.exceptions.UnknownCommandException;
 
 /**
  * Класс CommandManager. Определяет вводимую команду и создает соответствующий объект
@@ -21,13 +37,12 @@ public class CommandManager {
         this.helperInput = helper;
     }
 
-    public Command executeCommand(String userInput) {
+    public Command executeCommand(String userInput, String[] args) {
         String[] parts = userInput.trim().split("\\s+");
         String commandName = parts[0];
-        String[] args = new String[parts.length - 1];
         System.arraycopy(parts, 1, args, 0, parts.length - 1);
 
-        history.add(commandName); // можно добавить и аргументы, если нужно
+        history.add(commandName); 
 
         CommandType commandType = CommandType.fromString(commandName);
         if (commandType == null) {
@@ -57,8 +72,8 @@ public class CommandManager {
                 return new RemoveAllBy(colManager, args);
             case REMOVE_BY_ID:
                 return new RemoveById(colManager, args);
-            case SAVE:
-                return new Save(colManager);
+            // case SAVE:
+            //     return new Save(colManager);
             case SHOW:
                 return new Show(colManager);
             case HISTORY:
@@ -67,8 +82,8 @@ public class CommandManager {
                 return new Exit();
             case UPDATE_BY_ID:
                 return new UpdateById(colManager, helperInput, args);
-            case SAVE_HISTORY:
-                return new SaveHistory(history);
+            // case SAVE_HISTORY:
+            //     return new SaveHistory(history);
             default:
                 throw new UnknownCommandException("Неизвестная команда");
         }

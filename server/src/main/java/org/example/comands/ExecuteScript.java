@@ -1,11 +1,16 @@
 package org.example.comands;
 
-import org.example.managers.CollectionManager;
-import org.example.managers.CommandManager;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
+
+import org.example.managers.CollectionManager;
+import org.example.managers.CommandManager;
 
 /**
  * Команда 'execute_script'. Считывает и выполняет скрипт из указанного файла.
@@ -24,8 +29,8 @@ public class ExecuteScript implements Command{
         this.envVar = "SCRIPT_FILE";
     }
 
-    public void execute() throws IOException {
-        String path = System.getenv(envVar);
+    public String execute() throws IOException {
+        String path = "/home/enotpelmen/projects/work_with_collections2/server/src/main/java/org/example/script.txt";
 
         if (path == null) {
             throw new FileNotFoundException("Ошибка: Переменная окружения " + envVar + " не установлена!!!");
@@ -41,7 +46,7 @@ public class ExecuteScript implements Command{
             }
         }
 
-        System.out.println("Начинается выполнение скрипта из файла: " + path);
+        // System.out.println("Начинается выполнение скрипта из файла: " + path);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
             String line;
@@ -49,7 +54,11 @@ public class ExecuteScript implements Command{
 
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
-                line = line.trim();
+
+                String[] parts = line.split("\\s+", 2);
+                String commandName = parts[0];
+                String[] args = parts.length > 1 ? parts[1].split("\\s+") : new String[0];
+
 
                 if (line.isEmpty() || line.startsWith("//")) {
                     continue;
@@ -64,16 +73,15 @@ public class ExecuteScript implements Command{
                 }
 
                 try {
-                    commandManager.executeCommand(line).execute();
+                    System.out.println(commandManager.executeCommand(commandName, args).execute());
                 } catch (Exception e) {
                     System.err.println("Ошибка при выполнении команды '" + line + "': " + e.getMessage());
                 }
             }
 
-            System.out.println("\nВыполнение скрипта завершено.");
-
         } catch (IOException e) {
             System.err.println("Ошибка при чтении файла: " + e.getMessage());
         }
+        return "Выполнение скрипта завершено";
     }
 }

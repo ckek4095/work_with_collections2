@@ -1,8 +1,8 @@
 package org.example.comands;
 
-import org.example.managers.CollectionManager;
-import org.example.managers.InputBR;
 import java.io.IOException;
+
+import org.example.managers.CollectionManager;
 
 /**
  * Команда 'remove_all_by_minimal_point'. Удаляет из коллекции все элементы, значение поля minimalPoint которого эквивалентно заданному
@@ -25,26 +25,26 @@ public class RemoveAllBy implements Command {
     }
 
     @Override
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         Float minimalPoint;
-        if (args.length == 0) {
-            System.out.print(">>> Введите минимальный балл: ");
-            String input = InputBR.br.readLine();
-            try {
-                minimalPoint = Float.parseFloat(input);
-            } catch (NumberFormatException e) {
-                throw new IOException("Ошибка: неправильный формат введенных данных");
-            }
-        } else {
+        // if (args.length == 0) {
+        //     System.out.print(">>> Введите минимальный балл: ");
+        //     String input = InputBR.br.readLine();
+        //     try {
+        //         minimalPoint = Float.parseFloat(input);
+        //     } catch (NumberFormatException e) {
+        //         throw new IOException("Ошибка: неправильный формат введенных данных");
+        //     }
+        // } else {
             try {
                 minimalPoint = Float.parseFloat(args[0].trim());
             } catch (NumberFormatException e) {
                 throw new IOException("Ошибка: неправильный формат числа в аргументе");
             }
-        }
+        // }
         int sizeBefore = collectionManager.getCollection().size();
         collectionManager.getCollection().removeIf(elem -> elem.getMinimalPoint().equals(minimalPoint));
         int sizeAfter = collectionManager.getCollection().size();
-        System.out.println(">>> Удалено элементов: " + (sizeBefore - sizeAfter));
+        return ">>> Удалено элементов: " + (sizeBefore - sizeAfter);
     }
 }

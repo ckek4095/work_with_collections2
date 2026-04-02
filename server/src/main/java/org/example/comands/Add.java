@@ -26,12 +26,12 @@ public class Add implements Command {
 
     @Override
     public String execute() throws IOException {
-        LabWork elem;
+        LabWork elem = new LabWork(null);
         if (args.length >= 7) {
             elem = input.inputLab(args);
-        } else {
-            elem = input.inputLab();
-        }
+        } // else {
+        //     elem = input.inputLab();
+        // }
         collectionManager.setLabWork(elem);
         return ">>> Элемент успешно добавлен!";
     }

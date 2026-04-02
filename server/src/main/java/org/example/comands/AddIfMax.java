@@ -1,8 +1,9 @@
 package org.example.comands;
 
+import java.io.IOException;
+
 import org.example.elems.LabWork;
 import org.example.managers.CollectionManager;
-import java.io.IOException;
 
 /**
  * Команда 'add_if_max'. Добавляет новый элемент в коллекцию, если его значение превышает значение наибольшего элемента этой коллекции (элементы сортируются по минимальной оценке)
@@ -19,13 +20,13 @@ public class AddIfMax extends Add {
     }
 
     @Override
-    public void execute() throws IOException {
-        LabWork elem;
+    public String execute() throws IOException {
+        LabWork elem = new LabWork(null);
         if (args.length >= 7) {
             elem = input.inputLab(args);
-        } else {
-            elem = input.inputLab();
-        }
+        } // else {
+        //     elem = input.inputLab();
+        // }
         boolean flag = true;
         for (LabWork e : collectionManager.getCollection()) {
             if (e.getMinimalPoint() > elem.getMinimalPoint()) {
@@ -35,9 +36,9 @@ public class AddIfMax extends Add {
         }
         if (flag) {
             collectionManager.setLabWork(elem);
-            System.out.println(">>> Элемент успешно добавлен!!!");
+            return ">>> Элемент успешно добавлен!!!";
         } else {
-            System.out.println(">>> Упс, элемент не максимальный😭");
+            return ">>> Упс, элемент не максимальный😭";
         }
     }
 }

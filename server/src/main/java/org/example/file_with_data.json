@@ -28,20 +28,5 @@
       "name": "Физика",
       "labsCount": 48
     }
-  },
-  {
-    "id": "c40eceab-8756-4c4c-bd76-9302464ad5ea",
-    "name": "ghjkl",
-    "coordinates": {
-      "x": 5678,
-      "y": 45678
-    },
-    "creationDate": "2026-03-04T18:17:27.6775297",
-    "minimalPoint": 5678.0,
-    "difficulty": "EASY",
-    "discipline": {
-      "name": "dfghjkl",
-      "labsCount": 45678
-    }
   }
 ]

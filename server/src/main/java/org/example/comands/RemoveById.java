@@ -1,8 +1,8 @@
 package org.example.comands;
 
-import org.example.managers.CollectionManager;
-import org.example.managers.InputBR;
 import java.io.IOException;
+
+import org.example.managers.CollectionManager;
 
 /**
  * Команда 'remove_by_id'. Выводит элементы, значение поля discipline которых равно заданному
@@ -23,19 +23,19 @@ public class RemoveById implements Command {
     }
 
     @Override
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         String id;
-        if (args.length == 0) {
-            System.out.print(">>> Введите ID: ");
-            id = InputBR.br.readLine();
-        } else {
+        // if (args.length == 0) {
+        //     System.out.print(">>> Введите ID: ");
+        //     id = InputBR.br.readLine();
+        // } else {
             id = args[0].trim();
-        }
+        // }
         boolean removed = collectionManager.getCollection().removeIf(elem -> elem.getId().equals(id));
         if (removed) {
-            System.out.println(">>> Элемент с id " + id + " удален");
+            return ">>> Элемент с id " + id + " удален";
         } else {
-            System.out.println(">>> Элемент с id " + id + " не найден");
+            return ">>> Элемент с id " + id + " не найден";
         }
     }
 }

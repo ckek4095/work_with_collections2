@@ -1,9 +1,9 @@
 package org.example.comands;
 
+import java.io.IOException;
+
 import org.example.elems.LabWork;
 import org.example.managers.CollectionManager;
-import org.example.managers.InputBR;
-import java.io.IOException;
 
 /**
  * Команда 'filter_by_discipline'. Выводит элементы, значение поля discipline которых равно заданному
@@ -23,26 +23,28 @@ public class FilterByDiscipline extends Show {
     }
 
     @Override
-    public void execute() throws IOException {
+    public String execute() throws IOException {
         String disciplineName;
-        if (args.length == 0) {
-            System.out.print(">>> Введите название дисциплины: ");
-            disciplineName = InputBR.br.readLine();
-        } else {
+        // if (args.length == 0) {
+        //     System.out.print(">>> Введите название дисциплины: ");
+        //     disciplineName = InputBR.br.readLine();
+        // } else {
             disciplineName = args[0].trim();
-        }
+        // }
         if (disciplineName == null || disciplineName.isEmpty()) {
             throw new IllegalArgumentException("Ошибка: ввод не может быть пустым");
         }
         boolean found = false;
+        String result = "";
         for (LabWork elem : collectionManager.getCollection()) {
             if (disciplineName.equals(elem.getDiscipline().getName())) {
-                super.showElem(elem);
+                result += super.showElem(elem);
                 found = true;
             }
         }
         if (!found) {
-            System.out.println(">>> Элементы с дисциплиной '" + disciplineName + "' не найдены");
+            return ">>> Элементы с дисциплиной '" + disciplineName + "' не найдены";
         }
+        return result;
     }
 }

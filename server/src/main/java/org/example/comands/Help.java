@@ -1,14 +1,12 @@
 package org.example.comands;
 
-import java.util.List;
-
 /**
  * Команда 'help'. Выводит информацию о командах.
  * @author ckek4095
  */
 public class Help implements Command {
 
-    public void execute() {
+    public String execute() {
         StringBuilder information = new StringBuilder();
         information.append("help : вывести справку по доступным командам\n");
         information.append("info : вывести в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д.)\n");
@@ -26,7 +24,7 @@ public class Help implements Command {
         information.append("remove_all_by_minimal_point minimalPoint : удалить из коллекции все элементы, значение поля minimalPoint которого эквивалентно заданному\n");
         information.append("filter_by_discipline discipline : вывести элементы, значение поля discipline которых равно заданному\n");
         information.append("filter_starts_with_name name : вывести элементы, значение поля name которых начинается с заданной подстроки\n");
-        System.out.println(information);
+        return information.toString();
     }
 }
 
