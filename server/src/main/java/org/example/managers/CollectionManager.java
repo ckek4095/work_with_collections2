@@ -52,7 +52,7 @@ public class CollectionManager {
         }
 
         if (lw.getCoordinates().getX() <= -222) {
-            throw new IllegalArgumentException("Координата X не может быть <= 222");
+            throw new IllegalArgumentException("Координата X не может быть <= -222");
         }
 
         if (lw.getCreationDate() == null) {

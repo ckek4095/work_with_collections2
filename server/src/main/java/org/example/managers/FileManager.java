@@ -121,7 +121,6 @@ public class FileManager {
                 throw new IllegalArgumentException("Найден дубликат ID: " + lw.getId());
             }
 
-            // Дополнительная валидация + try catch сюда
             validateLabWork(lw);
         }
     }

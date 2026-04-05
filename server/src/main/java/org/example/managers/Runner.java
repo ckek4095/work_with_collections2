@@ -5,9 +5,11 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import org.example.comands.Command;
+import org.example.elems.LabWork;
 import org.example.exceptions.ExitException;
 
 import com.google.gson.Gson;
@@ -31,7 +33,10 @@ public class Runner {
         this.commandManager = commandManager;
         this.socket = socket;
         this.receiveBuffer = new byte[BUFFER_SIZE];
-        this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+        this.gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
+                .create();
         this.isRunning = true;
         
         try {
@@ -120,6 +125,7 @@ public class Runner {
         Request response = new Request();
         response.setSessionId(request.getSessionId());
         response.setTimestamp(System.currentTimeMillis());
+        LabWork labWork = request.getLabWork();
         
         try {
             String commandName = request.getCommandName();
@@ -131,18 +137,21 @@ public class Runner {
                 return response;
             }
             
-            // Проверка на exit
-            if (commandName.equalsIgnoreCase("exit")) {
-                response.setCommandName("exit");
-                response.setData("Сервер завершает работу");
-                return response;
-            }
+            // ультра-сомнительно
+            // // Проверка на exit
+            // if (commandName.equalsIgnoreCase("exit")) {
+            //     response.setCommandName("exit");
+            //     response.setData("Сервер завершает работу");
+            //     return response;
+            // }
             
             // Получаем и выполняем команду
-            Command command = commandManager.executeCommand(commandName, args);
-            
+            Command command = commandManager.executeCommand(commandName, args, labWork);
+
             // Выполняем команду
             String result = command.execute();
+
+            // вот тут усраться и сделать обработку add и прочих
             
             // Формируем успешный ответ
             response.setCommandName("success");

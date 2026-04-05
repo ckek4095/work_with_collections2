@@ -26,12 +26,12 @@ public class FilterStartsWith extends Show {
     @Override
     public String execute() throws IOException {
         String prefix;
-        if (args.length == 0) {
-            System.out.print(">>> Введите искомое название: ");
-            prefix = InputBR.br.readLine();
-        } else {
+        // if (args.length == 0) {
+        //     System.out.print(">>> Введите искомое название: ");
+        //     prefix = InputBR.br.readLine();
+        // } else {
             prefix = args[0].trim();
-        }
+        // }
         if (prefix == null || prefix.isEmpty()) {
             throw new IllegalArgumentException("Ошибка: ввод не может быть пустым");
         }

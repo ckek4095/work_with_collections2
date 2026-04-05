@@ -13,9 +13,15 @@ public class Add implements Command {
     protected CollectionManager collectionManager;
     protected HelperInputLab input;
     protected String[] args;
+    protected LabWork labWork;
 
     public Add(CollectionManager collectionManager, HelperInputLab input) {
         this(collectionManager, input, new String[0]);
+    }
+
+    public Add(CollectionManager collectionManager, HelperInputLab input, String[] args, LabWork labWork) {
+        this(collectionManager, input);
+        this.labWork = labWork;
     }
 
     public Add(CollectionManager collectionManager, HelperInputLab input, String[] args) {
@@ -26,12 +32,10 @@ public class Add implements Command {
 
     @Override
     public String execute() throws IOException {
-        LabWork elem = new LabWork(null);
+        LabWork elem = new LabWork();
         if (args.length >= 7) {
             elem = input.inputLab(args);
-        } // else {
-        //     elem = input.inputLab();
-        // }
+        } else elem = this.labWork;
         collectionManager.setLabWork(elem);
         return ">>> Элемент успешно добавлен!";
     }

@@ -33,7 +33,7 @@ public class MainServer {
             System.out.println("UDP сервер запущен на порту " + PORT);
             
             // Инициализация менеджеров
-            String envPath = "/home/enotpelmen/projects/work_with_collections2/server/src/main/java/org/example/file_with_data.json";
+            String envPath = "C:\\Users\\user\\IdeaProjects\\work_with_collections2\\server\\src\\main\\java\\org\\example\\file_with_data.json";
             FileManager fileManager = new FileManager(envPath);
             
             // Загрузка коллекции из файла
@@ -54,7 +54,7 @@ public class MainServer {
                 System.out.println("Получен сигнал завершения, сохраняем коллекцию...");
                 try {
                     // Выполняем сохранение коллекции
-                    commandManager.executeCommand("save", null);
+                    commandManager.executeCommand("save", null, new LabWork());
                     System.out.println("Коллекция сохранена успешно");
                 } catch (Exception e) {
                     System.err.println("Ошибка при сохранении коллекции: " + e.getMessage());

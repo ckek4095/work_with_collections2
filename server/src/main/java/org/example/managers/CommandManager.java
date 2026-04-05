@@ -20,6 +20,7 @@ import org.example.comands.RemoveAllBy;
 import org.example.comands.RemoveById;
 import org.example.comands.Show;
 import org.example.comands.UpdateById;
+import org.example.elems.LabWork;
 import org.example.exceptions.UnknownCommandException;
 
 /**
@@ -37,7 +38,7 @@ public class CommandManager {
         this.helperInput = helper;
     }
 
-    public Command executeCommand(String userInput, String[] args) {
+    public Command executeCommand(String userInput, String[] args, LabWork labWork) {
         String[] parts = userInput.trim().split("\\s+");
         String commandName = parts[0];
         System.arraycopy(parts, 1, args, 0, parts.length - 1);
@@ -51,11 +52,12 @@ public class CommandManager {
 
         switch (commandType) {
             case ADD:
-                return new Add(colManager, helperInput, args);
-            case ADD_IF_MIN:
-                return new AddIfMin(colManager, helperInput, args);
-            case ADD_IF_MAX:
-                return new AddIfMax(colManager, helperInput, args);
+                return new Add(colManager, helperInput, args, labWork);
+            // todo fix
+            // case ADD_IF_MIN:
+            //     return new AddIfMin(colManager, helperInput, labWork);
+            // case ADD_IF_MAX:
+            //     return new AddIfMax(colManager, helperInput, labWork);
             case CLEAR:
                 return new Clear(colManager);
             case EXECUTE_SCRIPT:

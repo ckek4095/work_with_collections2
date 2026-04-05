@@ -29,9 +29,9 @@ public class History implements Command {
         for (int i = 0; i < count; i++) {
             var elem = history.get(length - 1 - i);
             if (i == 0) {
-                result += elem + "   <--- последняя команда";
+                result += elem + "   <--- последняя команда\n";
             } else {
-                result += elem;
+                result += elem + "\n";
             }
         }
         return result;

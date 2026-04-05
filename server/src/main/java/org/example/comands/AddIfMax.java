@@ -15,18 +15,20 @@ public class AddIfMax extends Add {
         this(collectionManager, input, new String[0]);
     }
 
+    public AddIfMax(CollectionManager collectionManager, HelperInputLab input, String[] args, LabWork labWork) {
+        super(collectionManager, input, args, labWork);
+    }
+
     public AddIfMax(CollectionManager collectionManager, HelperInputLab input, String[] args) {
         super(collectionManager, input, args);
     }
 
     @Override
     public String execute() throws IOException {
-        LabWork elem = new LabWork(null);
+        LabWork elem = new LabWork();
         if (args.length >= 7) {
             elem = input.inputLab(args);
-        } // else {
-        //     elem = input.inputLab();
-        // }
+        } else elem = this.labWork;
         boolean flag = true;
         for (LabWork e : collectionManager.getCollection()) {
             if (e.getMinimalPoint() > elem.getMinimalPoint()) {

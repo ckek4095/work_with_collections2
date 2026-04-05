@@ -7,7 +7,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+
+import org.example.elem.LocalDateAdapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,7 +25,10 @@ public class Sender implements AutoCloseable {
     private static final int TIMEOUT = 5000;
 
     public Sender(String host, int port) throws SocketException, UnknownHostException {
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
+                .create();
         this.socket = new DatagramSocket();
         this.address = InetAddress.getByName(host);
         this.port = port;

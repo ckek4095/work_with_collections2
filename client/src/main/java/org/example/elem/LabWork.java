@@ -1,4 +1,4 @@
-package org.example.elems;
+package org.example.elem;
 
 /**
  * Класс LabWork, описывающий элемент сета

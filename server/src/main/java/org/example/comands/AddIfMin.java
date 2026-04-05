@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.example.elems.LabWork;
 import org.example.managers.CollectionManager;
 
+// todo fix
 
 /**
  * Команда 'add_if_min'. Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции (элементы сортируются по минимальной оценке)
@@ -16,18 +17,20 @@ public class AddIfMin extends Add {
         this(collectionManager, input, new String[0]);
     }
 
+    public AddIfMin(CollectionManager collectionManager, HelperInputLab input, String[] args, LabWork labWork) {
+        super(collectionManager, input, args, labWork);
+    }
+
     public AddIfMin(CollectionManager collectionManager, HelperInputLab input, String[] args) {
         super(collectionManager, input, args);
     }
 
     @Override
     public String execute() throws IOException {
-        LabWork elem = new LabWork(null);
+        LabWork elem = new LabWork();
         if (args.length >= 7) {
             elem = input.inputLab(args);
-        } // else {
-        //     elem = input.inputLab();
-        // }
+        } else elem = this.labWork;
         boolean flag = true;
         for (LabWork e : collectionManager.getCollection()) {
             if (e.getMinimalPoint() < elem.getMinimalPoint()) {

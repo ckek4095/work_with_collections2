@@ -3,6 +3,8 @@ package org.example.managers;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import org.example.elems.LabWork;
+
 /**
  * Класс Request для обмена данными между клиентом и сервером
  */
@@ -12,7 +14,9 @@ public class Request implements Serializable {
     private String username;
     private long timestamp;
     private String sessionId;
+    private LabWork labWork;
     private Object data; // Для дополнительных данных
+    
     public Request() {
         this.timestamp = System.currentTimeMillis();
     }
@@ -26,9 +30,9 @@ public class Request implements Serializable {
         this.args = args;
     }
     
-    public Request(String commandName, String[] args, String username) {
+    public Request(String commandName, String[] args, LabWork labWork) {
         this(commandName, args);
-        this.username = username;
+        this.labWork = labWork;
     }
     
     // Геттеры и сеттеры
@@ -78,6 +82,14 @@ public class Request implements Serializable {
     
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public void setLabWork(LabWork labWork) {
+        this.labWork = labWork;
+    }
+
+    public LabWork getLabWork() {
+        return labWork;
     }
     
     @Override

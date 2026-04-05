@@ -15,9 +15,9 @@ public class Info implements Command {
 
     public String execute() {
         String result = "";
-        result += "Тип коллекции: " + collectionManager.getCollection().getClass().getSimpleName();
-        result += "Дата инициализации: " + collectionManager.getTimeInit();
-        result += "Количество элементов: " + collectionManager.getCollection().toArray().length;
+        result += "Тип коллекции: " + collectionManager.getCollection().getClass().getSimpleName() + "\n";
+        result += "Дата инициализации: " + collectionManager.getTimeInit() + "\n";
+        result += "Количество элементов: " + collectionManager.getCollection().toArray().length + "\n";
         return result;
     }
 }
