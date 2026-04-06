@@ -20,7 +20,7 @@ import org.example.managers.Runner;
 
 public class MainServer {
 
-    private static final int PORT = 8080;
+    private static final int PORT = 60000;
 
     public static void main(String[] args) {
         DatagramSocket socket = null;
