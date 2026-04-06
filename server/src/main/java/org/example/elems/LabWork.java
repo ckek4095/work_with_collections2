@@ -17,11 +17,11 @@ public class LabWork {
     public LabWork() {
         this.id = "0";
         this.name = "";
-        this.coordinates = new Coordinates(0, null);
+        this.coordinates = new Coordinates(0, 0);
         this.creationDate = null;
-        this.minimalPoint = -1F;
+        this.minimalPoint = 0F;
         this.difficulty = Difficulty.EASY;
-        this.discipline = new Discipline("", -1);
+        this.discipline = new Discipline("", 0);
     }
 
     public LabWork(LabWork lab) {

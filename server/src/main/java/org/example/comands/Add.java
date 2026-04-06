@@ -20,7 +20,9 @@ public class Add implements Command {
     }
 
     public Add(CollectionManager collectionManager, HelperInputLab input, String[] args, LabWork labWork) {
-        this(collectionManager, input);
+        this.args = args;
+        this.collectionManager = collectionManager;
+        this.input = input;
         this.labWork = labWork;
     }
 

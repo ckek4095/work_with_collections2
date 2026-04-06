@@ -39,11 +39,14 @@ public class MainClient {
                 if ((List.of("add", "add_if_max", "add_if_min").contains(commandName)) && (arguments.length == 0) ) {
                     try {
                         labWork = helper.inputLab();
+                        Request request = new Request(commandName, arguments, labWork);
+                        request.setUsername(System.getProperty("user.name"));
+                        response = sender.sendAndReceive(request);
                     } catch (Exception e) {
                         System.err.println("Произошла ошибка во время ввода данных: " + e.getMessage());
                     }
                 } else {
-                    Request request = new Request(commandName, arguments, labWork);
+                    Request request = new Request(commandName, arguments);
                     request.setUsername(System.getProperty("user.name"));
                     response = sender.sendAndReceive(request);
                 }
