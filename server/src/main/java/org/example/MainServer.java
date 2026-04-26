@@ -5,18 +5,14 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Set;
 
-import org.example.comands.HelperInputLab;
-import org.example.elems.LabWork;
+import org.example.managers.HelperInputLabManager;
+import org.example.models.LabWork;
 import org.example.managers.CollectionManager;
 import org.example.managers.CommandManager;
 import org.example.managers.FileManager;
 import org.example.managers.Runner;
 
 // 1246840
-
-// TODO Сетевые каналы должны использоваться в неблокирующем режиме, Сервер должен работать в однопоточном режиме
-// TODO delete command save for client
-// TODO made logs with "Logback"
 
 public class MainServer {
 
@@ -25,6 +21,7 @@ public class MainServer {
     public static void main(String[] args) {
         DatagramSocket socket = null;
         Runner runner = null;
+        String env = System.getenv("DATA_PATH");
         
         try {
             // Создаем сокет
@@ -33,7 +30,7 @@ public class MainServer {
             System.out.println("UDP сервер запущен на порту " + PORT);
             
             // Инициализация менеджеров
-            String envPath = "C:\\Users\\user\\IdeaProjects\\work_with_collections2\\server\\src\\main\\java\\org\\example\\file_with_data.json";
+            String envPath = env;
             FileManager fileManager = new FileManager(envPath);
             
             // Загрузка коллекции из файла
@@ -42,7 +39,7 @@ public class MainServer {
             
             // Создание менеджеров
             CollectionManager colManager = new CollectionManager(collection);
-            HelperInputLab helper = new HelperInputLab(startExitingID);
+            HelperInputLabManager helper = new HelperInputLabManager(startExitingID);
             CommandManager commandManager = new CommandManager(colManager, helper);
             
             // Создание и запуск Runner

@@ -5,11 +5,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.util.List;
 
-import org.example.elem.HelperInputLab;
-import org.example.elem.LabWork;
-import org.example.elem.UniqueUUIDGenerator;
+import org.example.connect.Sender;
+import org.example.utility.HelperInputLab;
+import org.example.models.LabWork;
+
 
 public class MainClient {
 

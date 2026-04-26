@@ -13,6 +13,7 @@
     <modules>
         <module>client</module>
         <module>server</module>
+        <module>commonn</module>
     </modules>
     
     <properties>
@@ -30,5 +31,5 @@
                 <version>${gson.version}</version>
             </dependency>
         </dependencies>
-    </dependencyManagement>
+        </dependencyManagement>
 </project>

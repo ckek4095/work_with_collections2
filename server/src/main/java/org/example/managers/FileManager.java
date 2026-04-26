@@ -5,9 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import org.example.elems.LabWork;
-import org.example.managers.LocalDateAdapter;
 
+import org.example.LocalDateAdapter;
+import org.example.models.LabWork;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -47,10 +47,10 @@ public class FileManager {
 
         String path = envVar;
 
-        if (path == null) {
-            System.out.println("Ошибка: Переменная окружения " + envVar + " не установлена!!!");
-            return null;
-        }
+        // if (path == null) {
+        //     System.out.println("Ошибка: Переменная окружения " + envVar + " не установлена!!!");
+        //     return null;
+        // }
 
         File file = new File(path);
 

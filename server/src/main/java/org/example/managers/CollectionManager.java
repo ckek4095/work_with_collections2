@@ -1,6 +1,6 @@
 package org.example.managers;
 
-import org.example.elems.LabWork;
+import org.example.models.LabWork;
 
 import java.util.*;
 import java.time.LocalDateTime;
