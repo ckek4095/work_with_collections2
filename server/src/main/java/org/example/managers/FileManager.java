@@ -27,7 +27,7 @@ import static org.example.managers.CollectionManager.validateLabWork;
 public class FileManager {
 
     private String envVar;
-
+    Set<LabWork> labWorks = new LinkedHashSet<>();
     public Gson gson;
 
     public FileManager(String envVar) {
@@ -47,10 +47,10 @@ public class FileManager {
 
         String path = envVar;
 
-        // if (path == null) {
-        //     System.out.println("Ошибка: Переменная окружения " + envVar + " не установлена!!!");
-        //     return null;
-        // }
+        if (path == null) {
+            System.out.println("Ошибка: Переменная окружения " + envVar + " не установлена!!!");
+            return null;
+        }
 
         File file = new File(path);
 
@@ -68,8 +68,6 @@ public class FileManager {
                 return new LinkedHashSet<LabWork>();
             }
         }
-
-        Set<LabWork> labWorks = new LinkedHashSet<>();
 
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
             Type setType = new TypeToken<Set<LabWork>>() {}.getType();
@@ -122,6 +120,18 @@ public class FileManager {
             }
 
             validateLabWork(lw);
+        }
+    }
+
+
+    public void save(Set<LabWork> labWorks) throws IOException {
+        String text = gson.toJson(labWorks);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(envVar))) {
+            writer.write(text);
+            writer.flush();
+            System.out.println("Сохранение выполнено в файл: " + envVar);
+        } catch (IOException e) {
+            throw new IOException("Ошибка при сохранении в файл " + envVar + ": " + e.getMessage(), e);
         }
     }
 }

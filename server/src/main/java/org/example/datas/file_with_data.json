@@ -28,5 +28,35 @@
       "name": "Физика",
       "labsCount": 48
     }
+  },
+  {
+    "id": "288338d9-71ed-4744-ae82-0392efe9d1db",
+    "name": "babah",
+    "coordinates": {
+      "x": 52,
+      "y": 69
+    },
+    "creationDate": "2026-04-26T18:47:21.9572038",
+    "minimalPoint": 67.0,
+    "difficulty": "INSANE",
+    "discipline": {
+      "name": "babah",
+      "labsCount": 3132
+    }
+  },
+  {
+    "id": "b80dcae7-3ac7-4fe2-b2e4-7805ae37d30c",
+    "name": "iuytrew",
+    "coordinates": {
+      "x": 76543,
+      "y": 76543
+    },
+    "creationDate": "2026-04-26T20:55:49.2514486",
+    "minimalPoint": 76543.0,
+    "difficulty": "INSANE",
+    "discipline": {
+      "name": ";lkjhjghdfs",
+      "labsCount": 8765432
+    }
   }
 ]

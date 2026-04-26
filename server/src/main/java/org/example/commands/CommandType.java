@@ -2,21 +2,7 @@ package org.example.commands;
 
 import java.util.List;
 
-import org.example.commands.implemented.Add;
-import org.example.commands.implemented.AddIfMax;
-import org.example.commands.implemented.AddIfMin;
-import org.example.commands.implemented.Clear;
-import org.example.commands.implemented.ExecuteScript;
-import org.example.commands.implemented.Exit;
-import org.example.commands.implemented.FilterByDiscipline;
-import org.example.commands.implemented.FilterStartsWith;
-import org.example.commands.implemented.Help;
-import org.example.commands.implemented.History;
-import org.example.commands.implemented.Info;
-import org.example.commands.implemented.RemoveAllBy;
-import org.example.commands.implemented.RemoveById;
-import org.example.commands.implemented.Show;
-import org.example.commands.implemented.UpdateById;
+import org.example.commands.implemented.*;
 import org.example.managers.CollectionManager;
 import org.example.managers.CommandManager;
 import org.example.managers.HelperInputLabManager;

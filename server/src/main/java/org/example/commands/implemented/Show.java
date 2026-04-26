@@ -2,7 +2,6 @@ package org.example.commands.implemented;
 
 import java.io.IOException;
 
-import org.example.Response;
 import org.example.commands.Command;
 import org.example.models.LabWork;
 import org.example.managers.CollectionManager;

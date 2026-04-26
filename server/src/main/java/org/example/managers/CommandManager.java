@@ -28,15 +28,12 @@ public class CommandManager {
         String commandName = parts[0];
         System.arraycopy(parts, 1, args, 0, parts.length - 1);
 
-        history.add(commandName); 
+        history.add(commandName);
 
         CommandType commandType = CommandType.fromString(commandName);
         if (commandType == null) {
             throw new UnknownCommandException("Команда '" + commandName + "' не найдена");
         } else return commandType.create(colManager, helperInput, args, history, labWork);
-
-        
     }
-
 }
 

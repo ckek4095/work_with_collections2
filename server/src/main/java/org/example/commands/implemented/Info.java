@@ -1,7 +1,5 @@
 package org.example.commands.implemented;
 
-import org.example.Response;
-import org.example.ResponseStatus;
 import org.example.commands.Command;
 import org.example.managers.CollectionManager;
 

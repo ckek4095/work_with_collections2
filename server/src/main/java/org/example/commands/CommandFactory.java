@@ -12,5 +12,4 @@ interface CommandFactory {
                    String[] args,
                    List<String> history,
                    LabWork labWork);
-
 }

@@ -32,5 +32,10 @@ public class UniqueUUIDGenerator {
         existingIds.add(newId);
         return newId;
     }
+
+
+    public Set<String> getExistingIds() {
+        return existingIds;
+    }
 }
 

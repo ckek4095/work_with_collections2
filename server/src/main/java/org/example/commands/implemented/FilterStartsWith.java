@@ -44,7 +44,7 @@ public class FilterStartsWith extends Show {
             }
         }
         if (!found) {
-            System.out.println(">>> Элементы, начинающиеся с '" + prefix + "', не найдены");
+            result += ">>> Элементы, начинающиеся с '" + prefix + "', не найдены";
         }
         return result;
     }
