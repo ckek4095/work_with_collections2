@@ -15,20 +15,17 @@ import java.util.Set;
 
 public class HelperInputLabManager {
 
-    private UniqueUUIDGenerator generator;
 
-    public HelperInputLabManager(Set<String> existingID) {
-        this.generator = new UniqueUUIDGenerator(existingID);
+    public HelperInputLabManager() {
     }
 
     // Создание из массива аргументов (для скриптов)
-    public LabWork inputLab(String[] args) throws IOException {
+    public LabWork inputLab(String[] args, Integer ownerId) throws IOException {
         if (args.length < 7) {
             throw new IOException("Недостаточно данных для создания LabWork. Нужно 7 параметров, получено: " + args.length);
         }
 
         try {
-            String id = generator.generateUniqueId();
             String name = args[0].trim();
 
             int x = Integer.parseInt(args[1].trim());
@@ -43,8 +40,9 @@ public class HelperInputLabManager {
             int labsCount = Integer.parseInt(args[6].trim());
             Discipline discipline = new Discipline(nameDisc, labsCount);
 
+
             System.out.println(">>> Элемент успешно создан из переданных аргументов!");
-            return new LabWork(id, name, coordinates, null, minimalPoint, difficulty, discipline);
+            return new LabWork(name, coordinates, minimalPoint, difficulty, discipline, ownerId);
 
         } catch (NumberFormatException e) {
             throw new IOException("Ошибка преобразования числа: " + e.getMessage());

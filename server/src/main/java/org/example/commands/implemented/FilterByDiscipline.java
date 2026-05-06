@@ -1,47 +1,46 @@
 package org.example.commands.implemented;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
+import org.example.db.DatabaseManager;
 import org.example.models.LabWork;
-import org.example.managers.CollectionManager;
 
 /**
  * Команда 'filter_by_discipline'. Выводит элементы, значение поля discipline которых равно заданному
  */
-
 public class FilterByDiscipline extends Show {
 
     private String[] args;
+    private DatabaseManager databaseManager;
 
-    public FilterByDiscipline(CollectionManager collectionManager) {
-        this(collectionManager, new String[0]);
-    }
-
-    public FilterByDiscipline(CollectionManager collectionManager, String[] args) {
-        super(collectionManager);
+    public FilterByDiscipline(DatabaseManager databaseManager, String[] args) {
+        super(databaseManager);
+        this.databaseManager = databaseManager;
         this.args = args;
     }
 
     @Override
-    public String execute() throws IOException {
+    public String execute() throws IOException, SQLException {
         String disciplineName;
-        // if (args.length == 0) {
-        //     System.out.print(">>> Введите название дисциплины: ");
-        //     disciplineName = InputBR.br.readLine();
-        // } else {
-            disciplineName = args[0].trim();
-        // }
+        if (args.length == 0) {
+            throw new IllegalArgumentException("Ошибка: не указано название дисциплины");
+        }
+        disciplineName = String.join(" ", args);
+
         if (disciplineName == null || disciplineName.isEmpty()) {
             throw new IllegalArgumentException("Ошибка: ввод не может быть пустым");
         }
+
         boolean found = false;
         String result = "";
-        for (LabWork elem : collectionManager.getCollection()) {
+        for (LabWork elem : databaseManager.loadCollection()) {
             if (disciplineName.equals(elem.getDiscipline().getName())) {
                 result += super.showElem(elem);
                 found = true;
             }
         }
+
         if (!found) {
             return ">>> Элементы с дисциплиной '" + disciplineName + "' не найдены";
         }

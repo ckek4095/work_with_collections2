@@ -39,7 +39,7 @@ public class CollectionManager {
      */
 
     static public void validateLabWork(LabWork lw) {
-        if (lw.getId() == null || lw.getId().trim().isEmpty()) {
+        if (lw.getId() == null) {
             throw new IllegalArgumentException("ID не может быть пустым");
         }
 

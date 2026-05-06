@@ -16,17 +16,16 @@ import java.util.Set;
 
 public class HelperInputLab {
 
-    private UniqueUUIDGenerator generator;
     BufferedReader br;
+    Integer ownerId;
 
-    public HelperInputLab(Set<String> existingID) {
-        this.generator = new UniqueUUIDGenerator();
+    public HelperInputLab(Integer ownerId) {
         br = new BufferedReader(new InputStreamReader(System.in));
+        this.ownerId = ownerId;
     }
 
     // Интерактивный ввод (без аргументов)
     public LabWork inputLab() throws IOException {
-        String id = generator.generateUniqueId();
         System.out.print(">>> Введите имя: ");
         String name = br.readLine();
 
@@ -52,6 +51,6 @@ public class HelperInputLab {
         Discipline discipline = new Discipline(nameDisc, labsCount);
 
         System.out.println(">>> Элемент успешно создан!");
-        return new LabWork(id, name, coordinates, null, minimalPoint, difficulty, discipline);
+        return new LabWork(name, coordinates, minimalPoint, difficulty, discipline, ownerId);
     }
 }

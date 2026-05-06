@@ -1,42 +1,43 @@
 package org.example.commands.implemented;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.example.commands.Command;
-import org.example.managers.CollectionManager;
+import org.example.db.DatabaseManager;
 
 /**
- * Команда 'remove_by_id'. Выводит элементы, значение поля discipline которых равно заданному
+ * Команда 'remove_by_id'. Удаляет элемент по ID
  */
-
 public class RemoveById implements Command {
 
-    private CollectionManager collectionManager;
+    private DatabaseManager databaseManager;
+    private int userId;
     private String[] args;
 
-    public RemoveById(CollectionManager collectionManager) {
-        this(collectionManager, new String[0]);
+    public RemoveById(DatabaseManager databaseManager, int userId) {
+        this(databaseManager, userId, new String[0]);
     }
 
-    public RemoveById(CollectionManager collectionManager, String[] args) {
-        this.collectionManager = collectionManager;
+    public RemoveById(DatabaseManager databaseManager, int userId, String[] args) {
+        this.databaseManager = databaseManager;
+        this.userId = userId;
         this.args = args;
     }
 
     @Override
-    public String execute() throws IOException {
-        String id;
-        // if (args.length == 0) {
-        //     System.out.print(">>> Введите ID: ");
-        //     id = InputBR.br.readLine();
-        // } else {
-            id = args[0].trim();
-        // }
-        boolean removed = collectionManager.getCollection().removeIf(elem -> elem.getId().equals(id));
-        if (removed) {
+    public String execute() throws IOException, SQLException {
+        long id;
+        try {
+            id = Long.parseLong(args[0].trim());
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            throw new IOException("Ошибка: неправильный формат ID");
+        }
+
+        if (databaseManager.deleteLabWork(id, userId)) {
             return ">>> Элемент с id " + id + " удален";
         } else {
-            return ">>> Элемент с id " + id + " не найден";
+            return ">>> Элемент с id " + id + " не найден или у вас нет прав";
         }
     }
 }

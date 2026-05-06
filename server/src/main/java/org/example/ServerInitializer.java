@@ -2,8 +2,7 @@ package org.example;
 
 import java.util.Set;
 
-import org.example.ServerRuntime;
-import org.example.UDPInitialization;
+import org.example.db.DatabaseManager;
 import org.example.managers.*;
 import org.example.models.LabWork;
 
@@ -11,29 +10,30 @@ public class ServerInitializer {
 
     public ServerRuntime initialize() {
         try {
-            // 1. Путь к файлу из переменной окружения
-            String dataPath = System.getenv("DATA_PATH");
-            if (dataPath == null || dataPath.trim().isEmpty()) {
-                throw new IllegalArgumentException("DATA_PATH не установлена");
-            }
+            // 1. Подключаемся к БД
+            DatabaseManager dbManager = new DatabaseManager(
+                    ServerConfig.DB_URL,
+                    ServerConfig.DB_USER,
+                    ServerConfig.DB_PASSWORD
+            );
+            dbManager.connect();
 
-            // 2. Инициализация UDP
+            // 2. Загружаем коллекцию из БД
+            Set<LabWork> collection = dbManager.loadCollection();
+            System.out.println("Загружено " + collection.size() + " элементов из БД");
+
+            // 3. Инициализация UDP
             UDPInitialization udpInit = new UDPInitialization();
-
-            // 3. FileManager и загрузка коллекции
-            FileManager fileManager = new FileManager(dataPath);
-            Set<LabWork> collection = fileManager.readFromFile();
-            Set<String> existingIds = fileManager.exitingIDFromFile(collection);
 
             // 4. Менеджеры коллекции и команд
             CollectionManager collectionManager = new CollectionManager(collection);
-            HelperInputLabManager helperManager = new HelperInputLabManager(existingIds);
-            CommandManager commandManager = new CommandManager(collectionManager, helperManager);
+            HelperInputLabManager helperManager = new HelperInputLabManager();
+            CommandManager commandManager = new CommandManager(collectionManager, helperManager, dbManager);
 
             // 5. Создаем и возвращаем ServerRuntime
             return new ServerRuntime(
                     udpInit.getSocket(),
-                    fileManager,
+                    dbManager,
                     collectionManager,
                     commandManager
             );

@@ -1,7 +1,6 @@
 package org.example;
 
 import org.example.utility.HelperInputLab;
-import org.example.utility.UniqueUUIDGenerator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,14 +12,15 @@ import java.nio.charset.StandardCharsets;
 public class MainClient {
 
     public static void main(String[] args) {
-        System.out.println("Клиент запущен. Введите команды (для выхода введите 'exit'):");
 
-        UniqueUUIDGenerator uuids = new UniqueUUIDGenerator();
-        HelperInputLab helper = new HelperInputLab(uuids.getExistingIds());
+        HelperInputLab helper = new HelperInputLab(552);
         ResponseHandler responseHandler = new ResponseHandler();
 
         try (ClientService clientService = new ClientService("localhost", 60000, helper);
              BufferedReader br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+
+            System.out.println("Клиент запущен. Зарегистрируйтесь или войдите пж \n(для выхода введите 'exit'\nдля регистрации введите 'register [имя]'\nдля входа введите 'auth [имя]'):");
+
 
             while (clientService.isRunning()) {
                 System.out.print(">>> ");

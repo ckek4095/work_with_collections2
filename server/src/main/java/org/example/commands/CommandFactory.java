@@ -1,5 +1,6 @@
 package org.example.commands;
 
+import org.example.db.DatabaseManager;
 import org.example.managers.CollectionManager;
 import org.example.managers.HelperInputLabManager;
 import org.example.models.LabWork;
@@ -11,5 +12,7 @@ interface CommandFactory {
                    HelperInputLabManager helperInput,
                    String[] args,
                    List<String> history,
-                   LabWork labWork);
+                   LabWork labWork,
+                   Integer ownerId,
+                   DatabaseManager databaseManager);
 }

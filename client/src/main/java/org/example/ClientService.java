@@ -6,19 +6,14 @@ import org.example.utility.HelperInputLab;
 import java.io.IOException;
 
 public class ClientService implements AutoCloseable {
+
     private final Sender sender;
     private final CommandProcessor commandProcessor;
-    private final ResponseHandler responseHandler;
     private boolean isRunning = true;
 
     public ClientService(String host, int port, HelperInputLab helper) throws IOException {
         this.sender = new Sender(host, port);
-        this.responseHandler = new ResponseHandler();
-        this.commandProcessor = new CommandProcessor(
-                helper,
-                sender,
-                System.getProperty("user.name")
-        );
+        this.commandProcessor = new CommandProcessor(helper, sender); // просто helper и sender
     }
 
     public Request executeCommand(String commandLine) {

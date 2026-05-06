@@ -1,51 +1,51 @@
 package org.example.commands.implemented;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.example.commands.Command;
-import org.example.managers.CollectionManager;
+import org.example.db.DatabaseManager;
+import org.example.models.LabWork;
 
 /**
- * Команда 'remove_all_by_minimal_point'. Удаляет из коллекции все элементы, значение поля minimalPoint которого эквивалентно заданному
+ * Команда 'remove_all_by_minimal_point'. Удаляет из коллекции все элементы,
+ * значение поля minimalPoint которого эквивалентно заданному
  */
-
 public class RemoveAllBy implements Command {
 
-
-
-    private CollectionManager collectionManager;
+    private DatabaseManager databaseManager;
+    private int userId;
     private String[] args;
 
-    public RemoveAllBy(CollectionManager collectionManager) {
-        this(collectionManager, new String[0]);
+    public RemoveAllBy(DatabaseManager databaseManager, int userId) {
+        this(databaseManager, userId, new String[0]);
     }
 
-    public RemoveAllBy(CollectionManager collectionManager, String[] args) {
-        this.collectionManager = collectionManager;
+    public RemoveAllBy(DatabaseManager databaseManager, int userId, String[] args) {
+        this.databaseManager = databaseManager;
+        this.userId = userId;
         this.args = args;
     }
 
     @Override
-    public String execute() throws IOException {
+    public String execute() throws IOException, SQLException {
         Float minimalPoint;
-        // if (args.length == 0) {
-        //     System.out.print(">>> Введите минимальный балл: ");
-        //     String input = InputBR.br.readLine();
-        //     try {
-        //         minimalPoint = Float.parseFloat(input);
-        //     } catch (NumberFormatException e) {
-        //         throw new IOException("Ошибка: неправильный формат введенных данных");
-        //     }
-        // } else {
-            try {
-                minimalPoint = Float.parseFloat(args[0].trim());
-            } catch (NumberFormatException e) {
-                throw new IOException("Ошибка: неправильный формат числа в аргументе");
+        try {
+            minimalPoint = Float.parseFloat(args[0].trim());
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            throw new IOException("Ошибка: неправильный формат числа в аргументе");
+        }
+
+        int deletedCount = 0;
+        for (LabWork elem : databaseManager.loadCollection()) {
+            if (elem.getMinimalPoint().equals(minimalPoint) &&
+                    elem.getOwnerId() == userId) {
+                if (databaseManager.deleteLabWork(elem.getId(), userId)) {
+                    deletedCount++;
+                }
             }
-        // }
-        int sizeBefore = collectionManager.getCollection().size();
-        collectionManager.getCollection().removeIf(elem -> elem.getMinimalPoint().equals(minimalPoint));
-        int sizeAfter = collectionManager.getCollection().size();
-        return ">>> Удалено элементов: " + (sizeBefore - sizeAfter);
+        }
+
+        return ">>> Удалено элементов: " + deletedCount;
     }
 }

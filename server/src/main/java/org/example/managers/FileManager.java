@@ -92,26 +92,12 @@ public class FileManager {
     }
 
     /**
-     * Сбор всех ID из загружаемого файла
-     * @param labWorks элементы из файла
-     * @return список ID
-     */
-
-    public Set<String> exitingIDFromFile(Set<LabWork> labWorks) {
-        Set<String> existingIds = new HashSet<>();
-        for (LabWork elem : labWorks) {
-            existingIds.add(elem.getId());
-        }
-        return existingIds;
-    };
-
-    /**
      * Валидация списка LabWork объектов
      * @param labWorks массив элементов
      */
 
     private void validateLabWorks(Set<LabWork> labWorks) {
-        Set<String> ids = new HashSet<>();
+        Set<Long> ids = new HashSet<>();
 
         for (LabWork lw : labWorks) {
             // Проверка уникальности ID

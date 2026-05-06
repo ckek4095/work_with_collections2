@@ -1,24 +1,28 @@
 package org.example.commands.implemented;
 
+import java.sql.SQLException;
+
 import org.example.commands.Command;
-import org.example.managers.CollectionManager;
+import org.example.db.DatabaseManager;
 
 /**
- * Команда 'info'. Выводит в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д.)
+ * Команда 'info'. Выводит информацию о коллекции в БД
  */
 public class Info implements Command {
 
-    CollectionManager collectionManager;
+    private DatabaseManager databaseManager;
 
-    public Info(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
+    public Info(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
     }
 
-    public String execute() {
-        String result = "";
-        result += (collectionManager.getCollection().getClass().getSimpleName());
-        result += collectionManager.getTimeInit() + "";
-        result += collectionManager.getCollection().toArray().length + "";
+    public String execute() throws SQLException {
+        int size = databaseManager.loadCollection().size();
+
+        // Если нужна дополнительная статистика, можно добавить запросы к БД
+        String result = "Тип коллекции: HashSet\n";
+        result += "Количество элементов: " + size + "\n";
+
         return result;
     }
 }

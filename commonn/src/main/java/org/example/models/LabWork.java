@@ -1,27 +1,27 @@
 package org.example.models;
 
 /**
- * Класс LabWork, описывающий элемент сета
+ * Класс LabWork, описывающий элемент коллекции
  */
-
 public class LabWork {
-
-    private String id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
-    private String name; //Поле не может быть null, Строка не может быть пустой
-    private Coordinates coordinates; //Поле не может быть null
-    private java.time.LocalDateTime creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
-    private Float minimalPoint; //Поле может быть null, Значение поля должно быть больше 0
-    private Difficulty difficulty; //Поле может быть null
-    private Discipline discipline; //Поле не может быть null
+    private Long id;
+    private String name;
+    private Coordinates coordinates;
+    private java.time.LocalDateTime creationDate;
+    private Float minimalPoint;
+    private Difficulty difficulty;
+    private Discipline discipline;
+    private Integer ownerId;
 
     public LabWork() {
-        this.id = "0";
+        this.id = 0L;
         this.name = "";
-        this.coordinates = new Coordinates(0, null);
-        this.creationDate = null;
-        this.minimalPoint = -1F;
+        this.coordinates = new Coordinates(0, 0);
+        this.creationDate = java.time.LocalDateTime.now();
+        this.minimalPoint = 0F;
         this.difficulty = Difficulty.EASY;
-        this.discipline = new Discipline("", -1);
+        this.discipline = new Discipline("", 0);
+        this.ownerId = null;
     }
 
     public LabWork(LabWork lab) {
@@ -32,23 +32,18 @@ public class LabWork {
         this.minimalPoint = lab.getMinimalPoint();
         this.difficulty = lab.getDifficulty();
         this.discipline = lab.getDiscipline();
+        this.ownerId = lab.getOwnerId();
     }
 
-    public LabWork(String id, String name, Coordinates coordinates, java.time.LocalDateTime creationDate, Float minimalPoint, Difficulty difficulty, Discipline discipline) {
-        this.id = id;
+    // добавление в бд без ид(?)
+    public LabWork(String name, Coordinates coordinates, Float minimalPoint, Difficulty difficulty, Discipline discipline, Integer ownerId) {
         this.name = name;
         this.coordinates = coordinates;
-        this.creationDate = creationDate;
+        this.creationDate = java.time.LocalDateTime.now();
         this.minimalPoint = minimalPoint;
         this.difficulty = difficulty;
         this.discipline = discipline;
-
-        if (coordinates == null) {
-            throw new IllegalArgumentException("Координаты не могут отсутствовать");
-        }
-        if (creationDate == null) {
-            this.creationDate = java.time.LocalDateTime.now();
-        }
+        this.ownerId = ownerId;
     }
 
     public void update(LabWork lab) {
@@ -61,64 +56,76 @@ public class LabWork {
         this.discipline = lab.getDiscipline();
     }
 
-    public String getId() {
+    // Геттеры и сеттеры
+    public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public Coordinates getCoordinates() {
-        return coordinates;
-    }
-
-    public java.time.LocalDateTime getCreationDate() {
-        return creationDate;
-    }
-
-    public Float getMinimalPoint() {
-        return minimalPoint;
-    }
-
-    public Difficulty getDifficulty() {
-        return difficulty;
-    }
-
-    public Discipline getDiscipline() {
-        return discipline;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Coordinates getCoordinates() {
+        return coordinates;
     }
 
     public void setCoordinates(Coordinates coordinates) {
         this.coordinates = coordinates;
     }
 
+    public java.time.LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
     public void setCreationDate(java.time.LocalDateTime creationDate) {
-        if (creationDate == null) {
-            this.creationDate = java.time.LocalDateTime.now();
-        } else {
-            this.creationDate = creationDate;
-        }
+        this.creationDate = creationDate != null ? creationDate : java.time.LocalDateTime.now();
+    }
+
+    public Float getMinimalPoint() {
+        return minimalPoint;
     }
 
     public void setMinimalPoint(Float minimalPoint) {
-
         this.minimalPoint = minimalPoint;
+    }
+
+    public Difficulty getDifficulty() {
+        return difficulty;
     }
 
     public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
 
+    public Discipline getDiscipline() {
+        return discipline;
+    }
+
     public void setDiscipline(Discipline discipline) {
         this.discipline = discipline;
+    }
+
+    public Integer getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "LabWork{id=%d, name='%s', minimalPoint=%.1f, difficulty=%s}",
+                id, name, minimalPoint, difficulty
+        );
     }
 }

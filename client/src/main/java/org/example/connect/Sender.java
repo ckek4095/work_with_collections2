@@ -42,7 +42,6 @@ public class Sender implements AutoCloseable {
         byte[] data = jsonString.getBytes("UTF-8");
         DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
         socket.send(packet);
-        System.out.println("Отправлено: " + request.getCommandName());
     }
 
     public void sendMessage(String message) throws IOException {

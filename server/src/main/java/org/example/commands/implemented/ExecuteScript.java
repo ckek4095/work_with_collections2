@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.List;
 
 import org.example.commands.Command;
+import org.example.db.DatabaseManager;
 import org.example.models.LabWork;
 import org.example.managers.CollectionManager;
 import org.example.managers.CommandManager;
@@ -13,27 +14,30 @@ import org.example.managers.CommandManager;
 /**
  * Команда 'execute_script'. Считывает и выполняет скрипт из указанного файла.
  */
+// TODO Я В ****
 
 public class ExecuteScript implements Command {
 
-    CollectionManager collectionManager;
+    DatabaseManager databaseManager;
     CommandManager commandManager;
     String[] args;
     List<String> history;
+    Integer ownerId;
 
 
-    public ExecuteScript(CollectionManager collectionManager, CommandManager commandManager, String[] args, List<String> history) {
-        this.collectionManager = collectionManager;
+    public ExecuteScript(CommandManager commandManager, String[] args, List<String> history, Integer ownerId, DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
         this.commandManager = commandManager;
         this.args = args;
         this.history = history;
+        this.ownerId = ownerId;
     }
 
     public String execute() throws IOException {
         
         System.out.println("Начинается выполнение скрипта из файла: \n");
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
 
         try (BufferedReader reader = new BufferedReader(new StringReader(args[0]))) {
             String line;
@@ -47,7 +51,7 @@ public class ExecuteScript implements Command {
                 String[] args = parts.length > 1 ? parts[1].split("\\s+") : new String[0];
 
 
-                if (line.isEmpty() || line.startsWith("//")) {
+                if (line.isEmpty() || line.startsWith("//") || line.startsWith("#")) {
                     continue;
                 }
 
@@ -55,13 +59,13 @@ public class ExecuteScript implements Command {
 
                 // Проверка на рекурсию (вызов самого себя)
                 if (line.trim().startsWith("execute_script")) {
-                    System.err.println("Обнаружен рекурсивный вызов execute_script. Пропускаем😁");
+                    System.err.println("Обнаружен рекурсивный вызов execute_script. Пропускаем :р");
                     continue;
                 }
 
                 try {
                     history.add(commandName);
-                    result += commandManager.executeCommand(commandName, args, new LabWork()).execute() + "\n";
+                    result.append(commandManager.executeCommand(commandName, args, new LabWork(), ownerId).execute()).append("\n");
                 } catch (Exception e) {
                     System.err.println("Ошибка при выполнении команды '" + line + "': " + e.getMessage());
                 }

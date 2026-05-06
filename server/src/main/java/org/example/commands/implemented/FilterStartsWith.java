@@ -1,10 +1,11 @@
 package org.example.commands.implemented;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.regex.Pattern;
 
+import org.example.db.DatabaseManager;
 import org.example.models.LabWork;
-import org.example.managers.CollectionManager;
 
 /**
  * Команда 'filter_starts_with_name'. Выводит элементы, значение поля name которых начинается с заданной подстроки
@@ -12,41 +13,40 @@ import org.example.managers.CollectionManager;
 public class FilterStartsWith extends Show {
 
     private String[] args;
+    private DatabaseManager databaseManager;
 
-    public FilterStartsWith(CollectionManager collectionManager) {
-        this(collectionManager, new String[0]);
-    }
-
-    public FilterStartsWith(CollectionManager collectionManager, String[] args) {
-        super(collectionManager);
+    public FilterStartsWith(DatabaseManager databaseManager, String[] args) {
+        super(databaseManager);
+        this.databaseManager = databaseManager;
         this.args = args;
     }
 
     @Override
-    public String execute() throws IOException {
+    public String execute() throws IOException, SQLException {
         String prefix;
-        // if (args.length == 0) {
-        //     System.out.print(">>> Введите искомое название: ");
-        //     prefix = InputBR.br.readLine();
-        // } else {
-            prefix = args[0].trim();
-        // }
+        if (args.length == 0) {
+            throw new IllegalArgumentException("Ошибка: не указан префикс");
+        }
+        prefix = String.join(" ", args);
+
         if (prefix == null || prefix.isEmpty()) {
             throw new IllegalArgumentException("Ошибка: ввод не может быть пустым");
         }
+
         String regex = "(?i)(?U)^" + Pattern.quote(prefix) + ".*";
         String result = "";
         boolean found = false;
-        for (LabWork elem : collectionManager.getCollection()) {
+
+        for (LabWork elem : databaseManager.loadCollection()) {
             if (elem.getName().matches(regex)) {
                 result += super.showElem(elem);
                 found = true;
             }
         }
+
         if (!found) {
             result += ">>> Элементы, начинающиеся с '" + prefix + "', не найдены";
         }
         return result;
     }
 }
-

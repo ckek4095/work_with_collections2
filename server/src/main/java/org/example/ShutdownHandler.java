@@ -2,30 +2,31 @@ package org.example;
 
 import java.net.DatagramSocket;
 
+import org.example.db.DatabaseManager;
 import org.example.managers.CollectionManager;
-import org.example.managers.FileManager;
 
 public class ShutdownHandler implements Runnable {
-    private final FileManager fileManager;
+    private final DatabaseManager dbManager;
     private final CollectionManager collectionManager;
     private final DatagramSocket socket;
 
-    public ShutdownHandler(FileManager fileManager, CollectionManager collectionManager,
+    public ShutdownHandler(DatabaseManager dbManager, CollectionManager collectionManager,
                            DatagramSocket socket) {
-        this.fileManager = fileManager;
+        this.dbManager = dbManager;
         this.collectionManager = collectionManager;
         this.socket = socket;
     }
 
     @Override
     public void run() {
-        System.out.println("Получен сигнал завершения, сохраняем коллекцию...");
+        System.out.println("Получен сигнал завершения, отключаемся от БД...");
 
         try {
-            fileManager.save(collectionManager.getCollection());
-            System.out.println("Коллекция сохранена");
+            if (dbManager != null) {
+                dbManager.disconnect();
+            }
         } catch (Exception e) {
-            System.err.println("Ошибка при сохранении: " + e.getMessage());
+            System.err.println("Ошибка при отключении от БД: " + e.getMessage());
         }
 
         if (socket != null && !socket.isClosed()) {

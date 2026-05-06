@@ -11,96 +11,100 @@ import org.example.models.LabWork;
 public class Request implements Serializable {
     private String commandName = "";
     private String[] args;
-    private String username;
+    private String login;
+    private String password;
     private long timestamp;
-    private String sessionId;
     private LabWork labWork;
-    private Object data; // Для дополнительных данных
-    
+    private Object data;
+
     public Request() {
         this.timestamp = System.currentTimeMillis();
     }
-    
+
     public Request(String commandName) {
         this.commandName = commandName;
+        this.timestamp = System.currentTimeMillis();
     }
-    
-    public Request(String commandName, String ... args) {
+
+    public Request(String commandName, String[] args, String login, String password) {
         this(commandName);
         this.args = args;
+        this.login = login;
+        this.password = password;
     }
-    
-    public Request(String commandName, String[] args, LabWork labWork) {
-        this(commandName, args);
+
+    public Request(String commandName, String[] args, LabWork labWork, String login, String password) {
+        this(commandName, args, login, password);
         this.labWork = labWork;
     }
-    
-    // Геттеры и сеттеры
+
     public String getCommandName() {
         return commandName;
     }
-    
+
     public void setCommandName(String commandName) {
         this.commandName = commandName;
     }
-    
+
     public String[] getArgs() {
         return args;
     }
-    
+
     public void setArgs(String[] args) {
         this.args = args;
     }
-    
-    public String getUsername() {
-        return username;
+
+    public String getLogin() {
+        return login;
     }
-    
-    public void setUsername(String username) {
-        this.username = username;
+
+    public void setLogin(String login) {
+        this.login = login;
     }
-    
-    public long getTimestamp() {
-        return timestamp;
+
+    public String getPassword() {
+        return password;
     }
-    
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
-    
-    public String getSessionId() {
-        return sessionId;
-    }
-    
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-    
+
     public Object getData() {
         return data;
     }
-    
+
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public LabWork getLabWork() {
+        return labWork;
     }
 
     public void setLabWork(LabWork labWork) {
         this.labWork = labWork;
     }
 
-    public LabWork getLabWork() {
-        return labWork;
+    /**
+     * Проверка, есть ли у запроса данные для авторизации
+     */
+    public boolean hasAuthData() {
+        return (login != null) && (!login.trim().isEmpty());
     }
-    
+
     @Override
     public String toString() {
         return "Request{" +
                 "commandName='" + commandName + '\'' +
                 ", args=" + Arrays.toString(args) +
-                ", username='" + username + '\'' +
+                ", login='" + login + '\'' +
                 ", timestamp=" + timestamp +
-                ", sessionId='" + sessionId + '\'' +
-                ", data=" + data +
+                ", hasLabWork=" + (labWork != null) +
                 '}';
     }
 }
