@@ -1,12 +1,15 @@
 package org.example.managers;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 import org.example.LocalDateAdapter;
@@ -18,6 +21,7 @@ import org.example.exceptions.ExitException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.example.utility.ProcessingTask;
 
 /**
  * Класс Runner. Отвечает за последовательный запуск команд,
@@ -27,17 +31,18 @@ public class Runner {
 
     private CommandManager commandManager;
     private final DatagramSocket socket;
-    private byte[] receiveBuffer;
     private final Gson gson;
     private static final int BUFFER_SIZE = 65536;
     private static final int SOCKET_TIMEOUT = 60000;
     private boolean isRunning;
     private AuthManager authManager;
+    private ExecutorService pool; // пул потоков чтобы не прям многа
+    private final ForkJoinPool processPool;
+    private final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
 
     public Runner(CommandManager commandManager, DatagramSocket socket, DatabaseManager databaseManager) {
         this.commandManager = commandManager;
         this.socket = socket;
-        this.receiveBuffer = new byte[BUFFER_SIZE];
         this.gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
@@ -50,6 +55,8 @@ public class Runner {
         } catch (SocketException e) {
             System.err.println("Не удалось установить таймаут для сокета: " + e.getMessage());
         }
+        this.pool = Executors.newFixedThreadPool(25);
+        this.processPool = new ForkJoinPool(4);
     }
 
     public void run() throws IOException {
@@ -57,53 +64,25 @@ public class Runner {
 
         while (isRunning) {
             try {
-                // Очищаем буфер
-                Arrays.fill(receiveBuffer, (byte) 0);
-
-                // Создаем пакет для приема данных
+                // Для каждого пакета свой буфер
+                byte[] receiveBuffer = new byte[BUFFER_SIZE];
                 DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 
-                // Принимаем пакет
+                // Принимаем пакет (главный поток)
                 socket.receive(receivePacket);
 
-                // Сохраняем информацию о клиенте
-                java.net.InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
+                // Сохраняем данные перед отправкой в пул
+                final InetAddress clientAddress = receivePacket.getAddress();
+                final int clientPort = receivePacket.getPort();
+                final byte[] dataCopy = Arrays.copyOf(receivePacket.getData(), receivePacket.getLength());
 
-                // Извлекаем и парсим запрос
-                int dataLength = receivePacket.getLength();
-                String jsonData = new String(receiveBuffer, 0, dataLength, "UTF-8");
-
-                Request clientRequest;
-                try {
-                    clientRequest = gson.fromJson(jsonData, Request.class);
-                    if (clientRequest == null) {
-                        sendErrorResponse(clientAddress, clientPort, "Неверный формат запроса");
-                        continue;
+                pool.submit(() -> {
+                    try {
+                        handleRequest(dataCopy, clientAddress, clientPort);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (Exception e) {
-                    System.err.println("Ошибка парсинга JSON: " + e.getMessage());
-                    sendErrorResponse(clientAddress, clientPort, "Ошибка парсинга запроса: " + e.getMessage());
-                    continue;
-                }
-
-                System.out.println("Получена команда от " + clientAddress + ":" + clientPort +
-                        " -> " + clientRequest.getCommandName() +
-                        "; аргументы: " + Arrays.toString(clientRequest.getArgs()) +
-                        "; логин: " + clientRequest.getLogin());
-
-                // Обрабатываем запрос и получаем ответ
-                Request response = processRequest(clientRequest);
-
-                // Отправляем ответ клиенту
-                sendResponse(clientAddress, clientPort, response);
-
-                // Если команда exit, завершаем работу
-                if ("exit".equalsIgnoreCase(response.getCommandName())) {
-                    System.out.println("Получена команда выхода, сервер останавливается...");
-                    isRunning = false;
-                    break;
-                }
+                });
 
             } catch (SocketTimeoutException e) {
                 continue;
@@ -114,7 +93,6 @@ public class Runner {
                 return;
             } catch (IOException e) {
                 System.err.println("Ошибка ввода-вывода: " + e.getMessage());
-                receiveBuffer = new byte[BUFFER_SIZE];
             } catch (Exception e) {
                 System.err.println("Неожиданная ошибка: " + e.getMessage());
                 e.printStackTrace();
@@ -123,32 +101,69 @@ public class Runner {
     }
 
     /**
+     * Выполнение базовой команды
+     */
+    private void handleRequest(byte[] data, InetAddress clientAddress, int clientPort) throws IOException {
+        try {
+            // Парсим JSON
+            String jsonData = new String(data, "UTF-8");
+            Request clientRequest = gson.fromJson(jsonData, Request.class);
+
+            if (clientRequest == null) {
+                sendErrorResponse(clientAddress, clientPort, "Неверный формат запроса");
+                return;
+            }
+
+            System.out.println("[" + Thread.currentThread().getName() + "] Получена команда: " +
+                    clientRequest.getCommandName() + " от " + clientAddress + ":" + clientPort);
+
+            ProcessingTask task = new ProcessingTask(clientRequest, clientAddress, clientPort, this);
+            processPool.execute(task); // Асинхронно, не блокируем
+
+        } catch (UnsupportedEncodingException e) {
+            sendErrorResponse(clientAddress, clientPort, "Ошибка кодировки");
+        } catch (Exception e) {
+            System.err.println("Ошибка парсинга: " + e.getMessage());
+            sendErrorResponse(clientAddress, clientPort, "Внутренняя ошибка сервера");
+        }
+    }
+
+    /**
      * Отправляет ответ клиенту
      */
-    private void sendResponse(java.net.InetAddress address, int port, Request response) throws IOException {
-        String jsonResponse = gson.toJson(response);
-        byte[] data = jsonResponse.getBytes("UTF-8");
+    public void sendResponse(java.net.InetAddress address, int port, Request response) throws IOException {
+        Thread senderThread = new Thread(() -> {
+            try {
+                String jsonResponse = gson.toJson(response);
+                byte[] data = jsonResponse.getBytes("UTF-8");
 
-        // Ограничиваем размер ответа
-        if (data.length > BUFFER_SIZE) {
-            System.err.println("Ответ слишком большой: " + data.length + " байт");
-            response.setCommandName("error");
-            response.setData("Ответ слишком большой для отправки по UDP");
-            jsonResponse = gson.toJson(response);
-            data = jsonResponse.getBytes("UTF-8");
-        }
+                if (data.length > BUFFER_SIZE) {
+                    response.setCommandName("error");
+                    response.setData("Ответ слишком большой для отправки по UDP");
+                    jsonResponse = gson.toJson(response);
+                    data = jsonResponse.getBytes("UTF-8");
+                }
 
-        DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
-        socket.send(packet);
+                DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+                socket.send(packet);
 
-        System.out.println("Отправлен ответ: " + response.getCommandName() +
-                " - " + (response.getData() != null ? response.getData().toString().substring(0, Math.min(100, response.getData().toString().length())) : "null"));
+                System.out.println("[" + Thread.currentThread().getName() + "] Отправлен ответ: " +
+                        response.getCommandName());
+
+            } catch (IOException e) {
+                System.err.println("[" + Thread.currentThread().getName() + "] Ошибка отправки: " + e.getMessage());
+            }
+        });
+
+        senderThread.setName("ResponseSender-" + address.getHostAddress() + ":" + port);
+        senderThread.start();
     }
 
     /**
      * Отправляет ошибку клиенту
      */
     private void sendErrorResponse(java.net.InetAddress address, int port, String errorMessage) throws IOException {
+
         Request errorResponse = new Request();
         errorResponse.setCommandName("error");
         errorResponse.setData(errorMessage);
@@ -159,7 +174,7 @@ public class Runner {
     /**
      * Обрабатывает запрос от клиента
      */
-    private Request processRequest(Request request) {
+    public Request processRequest(Request request) {
         Request response = new Request();
         response.setTimestamp(System.currentTimeMillis());
 
@@ -273,7 +288,6 @@ public class Runner {
             response.setData("Ошибка авторизации: неверный логин или пароль.\n" +
                     "Если у вас нет аккаунта, используйте 'register <логин> <пароль>'");
         }
-
         return response;
     }
 
@@ -339,12 +353,5 @@ public class Runner {
             socket.close();
         }
         System.out.println("Сервер остановлен");
-    }
-
-    /**
-     * Проверка, работает ли сервер
-     */
-    public boolean isRunning() {
-        return isRunning;
     }
 }

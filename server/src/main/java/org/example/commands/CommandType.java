@@ -13,8 +13,6 @@ import org.example.models.LabWork;
  * Enum CommandType. Хранит команды и соответствующие им лямбда-выражения для создания класса команды
  */
 
-// TODO разбить по файликам хзхз
-
 public enum CommandType {
 
     ADD("add", (colManager, helperInput, args, history, labWork, ownerId, databaseManager) -> 

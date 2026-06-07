@@ -14,7 +14,6 @@ import org.example.managers.CommandManager;
 /**
  * Команда 'execute_script'. Считывает и выполняет скрипт из указанного файла.
  */
-// TODO Я В ****
 
 public class ExecuteScript implements Command {
 

@@ -21,4 +21,5 @@ public class AuthManager {
         }
         return dbManager.registerUser(login, password);
     }
+
 }
