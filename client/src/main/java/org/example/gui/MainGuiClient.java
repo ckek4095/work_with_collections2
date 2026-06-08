@@ -12,6 +12,7 @@ public class MainGuiClient {
                 GuiClientService clientService = new GuiClientService(HOST, PORT);
                 LoginFrame loginFrame = new LoginFrame(clientService);
                 loginFrame.setVisible(true);
+
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(
                         null,

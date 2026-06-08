@@ -57,7 +57,7 @@ public class VisualizationPanel extends JPanel {
         int centerX = w / 2;
         int centerY = h / 2;
 
-        g2.setColor(new Color(230, 230, 230));
+        g2.setColor(new Color(230, 230, 230, 237));
 
         for (int x = centerX; x < w; x += 50) {
             g2.drawLine(x, 35, x, h - 35);
@@ -111,7 +111,7 @@ public class VisualizationPanel extends JPanel {
         g2.setColor(Color.WHITE);
         g2.fillRect(x - 10, y - 20, 130, 25 + ownerColors.size() * 24);
 
-        g2.setColor(new Color(210, 210, 210));
+        g2.setColor(new Color(210, 210, 210, 220));
         g2.drawRect(x - 10, y - 20, 130, 25 + ownerColors.size() * 24);
 
         g2.setColor(Color.BLACK);

@@ -31,6 +31,10 @@ public class MainFrame extends JFrame {
 
     private List<LabWork> allLabWorks = new ArrayList<>();
 
+    // Снегопад
+    private SnowfallOverlay snowfallOverlay;
+    private JCheckBox snowToggleButton;
+
     public MainFrame(GuiClientService clientService) {
         this.clientService = clientService;
 
@@ -43,11 +47,20 @@ public class MainFrame extends JFrame {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
                 stopAutoRefresh();
+                if (snowfallOverlay != null) {
+                    snowfallOverlay.stopSnowfall();
+                }
             }
         });
         setMinimumSize(new Dimension(1200, 760));
 
         initComponents();
+
+        // Инициализация снегопада после создания всех компонентов
+        SwingUtilities.invokeLater(() -> {
+            initSnowfallOverlay();
+        });
+
         refreshCollection();
         startAutoRefresh();
     }
@@ -74,8 +87,8 @@ public class MainFrame extends JFrame {
         JLabel userLabel = new JLabel("Пользователь:   " + clientService.getLogin());
         userLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        JPanel languagePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
-        languagePanel.setBackground(Color.WHITE);
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        rightPanel.setBackground(Color.WHITE);
 
         JLabel languageLabel = new JLabel("Язык:");
         JComboBox<String> languageBox = new JComboBox<>(new String[]{
@@ -86,11 +99,20 @@ public class MainFrame extends JFrame {
         });
         languageBox.setPreferredSize(new Dimension(260, 34));
 
-        languagePanel.add(languageLabel);
-        languagePanel.add(languageBox);
+        // Кнопка включения/выключения снегопада
+        snowToggleButton = new JCheckBox("Снегопад");
+        snowToggleButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        snowToggleButton.setBackground(Color.WHITE);
+        snowToggleButton.setSelected(true);
+        snowToggleButton.addActionListener(e -> toggleSnowfall(snowToggleButton.isSelected()));
+
+        rightPanel.add(languageLabel);
+        rightPanel.add(languageBox);
+        rightPanel.add(Box.createHorizontalStrut(20));
+        rightPanel.add(snowToggleButton);
 
         userPanel.add(userLabel, BorderLayout.WEST);
-        userPanel.add(languagePanel, BorderLayout.EAST);
+        userPanel.add(rightPanel, BorderLayout.EAST);
 
         JPanel controlsPanel = new JPanel(new BorderLayout(15, 0));
         controlsPanel.setBackground(Color.WHITE);
@@ -212,6 +234,49 @@ public class MainFrame extends JFrame {
         button.setFont(new Font("Arial", Font.PLAIN, 14));
         button.addActionListener(e -> action.run());
         return button;
+    }
+
+    // Инициализация снегопада
+    private void initSnowfallOverlay() {
+        snowfallOverlay = new SnowfallOverlay(getWidth(), getHeight());
+        snowfallOverlay.setOpaque(false);
+
+        // Добавляем в самый верхний слой
+        getLayeredPane().add(snowfallOverlay, JLayeredPane.PALETTE_LAYER);
+
+        // Обновляем размер при изменении окна
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (snowfallOverlay != null) {
+                    snowfallOverlay.updateSize(getWidth(), getHeight());
+                    snowfallOverlay.setBounds(0, 0, getWidth(), getHeight());
+                }
+            }
+        });
+
+        // Устанавливаем начальные границы
+        snowfallOverlay.setBounds(0, 0, getWidth(), getHeight());
+    }
+
+    // Включение/выключение снегопада
+    private void toggleSnowfall(boolean enable) {
+        if (snowfallOverlay != null) {
+            if (enable) {
+                if (!snowfallOverlay.isVisible()) {
+                    // Пересоздаем для возобновления
+                    getLayeredPane().remove(snowfallOverlay);
+                    snowfallOverlay = new SnowfallOverlay(getWidth(), getHeight());
+                    snowfallOverlay.setBounds(0, 0, getWidth(), getHeight());
+                    getLayeredPane().add(snowfallOverlay, JLayeredPane.PALETTE_LAYER);
+                    revalidate();
+                    repaint();
+                }
+            } else {
+                snowfallOverlay.stopSnowfall();
+                snowfallOverlay.setVisible(false);
+            }
+        }
     }
 
     private void refreshCollection() {
