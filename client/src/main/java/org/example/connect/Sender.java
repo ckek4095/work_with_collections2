@@ -56,7 +56,6 @@ public class Sender implements AutoCloseable {
             socket.receive(receivePacket);
 
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength(), "UTF-8");
-//            System.out.println("Получен ответ: " + response);
 
             return gson.fromJson(response, Request.class);
 

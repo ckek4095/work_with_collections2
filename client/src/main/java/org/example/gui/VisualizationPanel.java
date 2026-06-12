@@ -1,8 +1,10 @@
 package org.example.gui;
 
+import org.example.gui.localization.LocaleManager;
 import org.example.models.LabWork;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,10 +16,12 @@ public class VisualizationPanel extends JPanel {
     private List<LabWork> labWorks = new ArrayList<>();
     private final Map<Integer, Color> ownerColors = new HashMap<>();
     private Consumer<LabWork> clickHandler;
+    private TitledBorder titledBorder;
 
     public VisualizationPanel() {
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createTitledBorder("Визуализация объектов"));
+        titledBorder = BorderFactory.createTitledBorder(LocaleManager.get("main.visualization.title"));
+        setBorder(titledBorder);
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -28,6 +32,13 @@ public class VisualizationPanel extends JPanel {
                 }
             }
         });
+    }
+
+    public void updateLocale() {
+        if (titledBorder != null) {
+            titledBorder.setTitle(LocaleManager.get("main.visualization.title"));
+            repaint();
+        }
     }
 
     public void setLabWorks(List<LabWork> labWorks) {
@@ -108,22 +119,24 @@ public class VisualizationPanel extends JPanel {
         int x = getWidth() - 150;
         int y = 40;
 
-        g2.setColor(Color.WHITE);
-        g2.fillRect(x - 10, y - 20, 130, 25 + ownerColors.size() * 24);
+        g2.setColor(new Color(255, 255, 255, 230));
+        g2.fillRect(x - 10, y - 20, 140, 25 + ownerColors.size() * 24);
 
         g2.setColor(new Color(210, 210, 210, 220));
-        g2.drawRect(x - 10, y - 20, 130, 25 + ownerColors.size() * 24);
+        g2.drawRect(x - 10, y - 20, 140, 25 + ownerColors.size() * 24);
 
         g2.setColor(Color.BLACK);
-        g2.drawString("Владельцы (ID)", x, y);
+        g2.setFont(new Font("Arial", Font.BOLD, 12));
+        g2.drawString(LocaleManager.get("visualization.owners"), x, y);
 
+        g2.setFont(new Font("Arial", Font.PLAIN, 11));
         int index = 1;
         for (Map.Entry<Integer, Color> entry : ownerColors.entrySet()) {
             g2.setColor(entry.getValue());
             g2.fillRect(x, y + index * 22 - 10, 12, 12);
 
             g2.setColor(Color.BLACK);
-            g2.drawString(String.valueOf(entry.getKey()), x + 22, y + index * 22);
+            g2.drawString(LocaleManager.get("visualization.owner.id") + ": " + entry.getKey(), x + 22, y + index * 22);
 
             index++;
         }
@@ -144,6 +157,8 @@ public class VisualizationPanel extends JPanel {
         return Math.max(14, Math.min(size, 45));
     }
 
+    private final Random random = new Random();
+
     private Color getColorForOwner(Integer ownerId) {
         int id = ownerId == null ? 0 : ownerId;
 
@@ -154,14 +169,22 @@ public class VisualizationPanel extends JPanel {
                     new Color(80, 160, 80),
                     new Color(70, 180, 190),
                     new Color(150, 90, 210),
-                    new Color(230, 160, 50)
+                    new Color(230, 160, 50),
+                    new Color(255, 100, 100),
+                    new Color(100, 255, 100),
+                    new Color(100, 100, 255),
+                    new Color(255, 200, 100),
+                    new Color(200, 100, 255)
             };
-            return colors[Math.abs(value) % colors.length];
+            return colors[random.nextInt(colors.length)];
         });
     }
 
+
     private LabWork findClickedObject(int mouseX, int mouseY) {
-        for (LabWork labWork : labWorks) {
+        // Ищем в обратном порядке, чтобы верхние объекты были приоритетнее
+        for (int i = labWorks.size() - 1; i >= 0; i--) {
+            LabWork labWork = labWorks.get(i);
             if (labWork.getCoordinates() == null) {
                 continue;
             }

@@ -1,5 +1,6 @@
 package org.example.gui.table;
 
+import org.example.gui.localization.LocaleManager;
 import org.example.models.LabWork;
 
 import javax.swing.table.AbstractTableModel;
@@ -8,29 +9,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LabWorkTableModel extends AbstractTableModel {
-    private final String[] columns = {
-            "ID",
-            "Название",
-            "X",
-            "Y",
-            "Мин. балл",
-            "Сложность",
-            "Дисциплина",
-            "Кол-во лаб.",
-            "Владелец (ID)",
-            "Дата создания"
-    };
-
+    private String[] getColumns() {
+        return new String[]{
+                LocaleManager.get("column.id"),
+                LocaleManager.get("column.name"),
+                LocaleManager.get("column.x"),
+                LocaleManager.get("column.y"),
+                LocaleManager.get("column.minimal.point"),
+                LocaleManager.get("column.difficulty"),
+                LocaleManager.get("column.discipline"),
+                LocaleManager.get("column.labs.count"),
+                LocaleManager.get("column.owner.id"),
+                LocaleManager.get("column.creation.date")
+        };
+    }
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private List<LabWork> labWorks = new ArrayList<>();
 
     public void setLabWorks(List<LabWork> labWorks) {
         this.labWorks = labWorks == null ? new ArrayList<>() : new ArrayList<>(labWorks);
         fireTableDataChanged();
-    }
-
-    public List<LabWork> getLabWorks() {
-        return new ArrayList<>(labWorks);
     }
 
     public LabWork getLabWorkAt(int rowIndex) {
@@ -47,12 +45,16 @@ public class LabWorkTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return columns.length;
+        return getColumns().length;
     }
 
     @Override
     public String getColumnName(int column) {
-        return columns[column];
+        return getColumns()[column];
+    }
+
+    public void updateLocale() {
+        fireTableStructureChanged();
     }
 
     @Override

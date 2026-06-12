@@ -2,13 +2,13 @@ package org.example.gui;
 
 import org.example.Request;
 import org.example.connect.Sender;
+import org.example.gui.localization.ServerResponseLocalizer;
 import org.example.models.LabWork;
 
 import java.io.IOException;
 
 public class GuiClientService implements AutoCloseable {
     private final Sender sender;
-
     private String login;
     private String password;
 
@@ -64,26 +64,21 @@ public class GuiClientService implements AutoCloseable {
         return response != null && "success".equalsIgnoreCase(response.getCommandName());
     }
 
+    // ГЛАВНЫЙ МЕТОД - здесь локализуются ВСЕ ответы от сервера
     public String getResponseText(Request response) {
         if (response == null) {
-            return "Нет ответа от сервера";
+            return ServerResponseLocalizer.localize("Нет ответа от сервера");
         }
 
         Object data = response.getData();
-        return data == null ? "" : data.toString();
-    }
+        String rawMessage = data == null ? "" : data.toString();
 
-    public boolean isAuthorized() {
-        return login != null && !login.isBlank()
-                && password != null && !password.isBlank();
+        // Локализуем сообщение от сервера
+        return ServerResponseLocalizer.localize(rawMessage);
     }
 
     public String getLogin() {
         return login;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     @Override

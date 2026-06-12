@@ -1,5 +1,7 @@
 package org.example.gui;
 
+import org.example.gui.localization.LocaleManager;
+import org.example.gui.localization.ServerResponseLocalizer;
 import org.example.models.Coordinates;
 import org.example.models.Difficulty;
 import org.example.models.Discipline;
@@ -65,25 +67,25 @@ public class AddLabWorkDialog extends JDialog {
         disciplineNameField = new JTextField();
         labsCountField = new JTextField();
 
-        form.add(createLabel("Название:"));
+        form.add(createLabel(LocaleManager.get("field.name")));
         form.add(nameField);
 
-        form.add(createLabel("Координата X:"));
+        form.add(createLabel(LocaleManager.get("field.x")));
         form.add(xField);
 
-        form.add(createLabel("Координата Y:"));
+        form.add(createLabel(LocaleManager.get("field.y")));
         form.add(yField);
 
-        form.add(createLabel("Минимальный балл:"));
+        form.add(createLabel(LocaleManager.get("field.minimal.point")));
         form.add(minimalPointField);
 
-        form.add(createLabel("Сложность:"));
+        form.add(createLabel(LocaleManager.get("field.difficulty")));
         form.add(difficultyBox);
 
-        form.add(createLabel("Дисциплина:"));
+        form.add(createLabel(LocaleManager.get("field.discipline")));
         form.add(disciplineNameField);
 
-        form.add(createLabel("Количество лабораторных:"));
+        form.add(createLabel(LocaleManager.get("field.labs.count")));
         form.add(labsCountField);
 
         root.add(form, BorderLayout.CENTER);
@@ -100,8 +102,9 @@ public class AddLabWorkDialog extends JDialog {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
         buttons.setBackground(Color.WHITE);
 
-        JButton saveButton = new JButton("Сохранить");
-        JButton cancelButton = new JButton("Отмена");
+        // Локализация кнопок
+        JButton saveButton = new JButton(LocaleManager.get("button.save"));
+        JButton cancelButton = new JButton(LocaleManager.get("button.cancel"));
 
         styleButton(saveButton);
         styleButton(cancelButton);
@@ -131,32 +134,6 @@ public class AddLabWorkDialog extends JDialog {
         button.setFont(new Font("Arial", Font.PLAIN, 15));
     }
 
-    private void save() {
-        try {
-            LabWork labWork = readLabWorkFromForm();
-
-            String[] args = buildArgs(labWork);
-
-            var response = clientService.executeLabWorkCommand(
-                    commandName,
-                    labWork,
-                    args
-            );
-
-            JOptionPane.showMessageDialog(this, clientService.getResponseText(response));
-
-            if (clientService.isSuccess(response)) {
-                refreshCallback.run();
-                dispose();
-            }
-
-        } catch (IllegalArgumentException ex) {
-            errorLabel.setText(ex.getMessage());
-        } catch (Exception ex) {
-            errorLabel.setText("Ошибка отправки данных на сервер");
-        }
-    }
-
     private LabWork readLabWorkFromForm() {
         String name = nameField.getText().trim();
         String xText = xField.getText().trim();
@@ -165,19 +142,13 @@ public class AddLabWorkDialog extends JDialog {
         String disciplineName = disciplineNameField.getText().trim();
         String labsCountText = labsCountField.getText().trim();
 
-        if (name.isEmpty()
-                || xText.isEmpty()
-                || yText.isEmpty()
-                || minimalPointText.isEmpty()
-                || disciplineName.isEmpty()
-                || labsCountText.isEmpty()) {
-            throw new IllegalArgumentException("Заполните все поля");
+        if (name.isEmpty() || xText.isEmpty() || yText.isEmpty() ||
+                minimalPointText.isEmpty() || disciplineName.isEmpty() || labsCountText.isEmpty()) {
+            throw new IllegalArgumentException(LocaleManager.get("message.fill.all"));
         }
 
-        int x;
-        int y;
+        int x, y, labsCount;
         float minimalPoint;
-        int labsCount;
 
         try {
             x = Integer.parseInt(xText);
@@ -185,15 +156,15 @@ public class AddLabWorkDialog extends JDialog {
             minimalPoint = Float.parseFloat(minimalPointText.replace(",", "."));
             labsCount = Integer.parseInt(labsCountText);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Проверьте числовые поля");
+            throw new IllegalArgumentException(LocaleManager.get("message.number.error"));
         }
 
         if (minimalPoint <= 0) {
-            throw new IllegalArgumentException("Минимальный балл должен быть больше 0");
+            throw new IllegalArgumentException(LocaleManager.get("validation.minimal.point.positive"));
         }
 
         if (labsCount <= 0) {
-            throw new IllegalArgumentException("Количество лабораторных должно быть больше 0");
+            throw new IllegalArgumentException(LocaleManager.get("validation.labs.count.positive"));
         }
 
         Difficulty difficulty = (Difficulty) difficultyBox.getSelectedItem();
@@ -206,6 +177,29 @@ public class AddLabWorkDialog extends JDialog {
                 new Discipline(disciplineName, labsCount),
                 null
         );
+    }
+
+    private void save() {
+        try {
+            LabWork labWork = readLabWorkFromForm();
+            String[] args = buildArgs(labWork);
+
+            var response = clientService.executeLabWorkCommand(commandName, labWork, args);
+
+            // Локализованное сообщение от сервера
+            String localizedMessage = clientService.getResponseText(response);
+            JOptionPane.showMessageDialog(this, localizedMessage);
+
+            if (clientService.isSuccess(response)) {
+                refreshCallback.run();
+                dispose();
+            }
+
+        } catch (IllegalArgumentException ex) {
+            errorLabel.setText(ex.getMessage()); // ex.getMessage() уже локализован
+        } catch (Exception ex) {
+            errorLabel.setText(LocaleManager.get("login.connection.error"));
+        }
     }
 
     private String[] buildArgs(LabWork labWork) {

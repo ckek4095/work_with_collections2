@@ -1,6 +1,9 @@
 package org.example.gui;
 
 import org.example.Request;
+import org.example.gui.localization.GuiLocale;
+import org.example.gui.localization.LocaleManager;
+import org.example.gui.localization.ServerResponseLocalizer;
 import org.example.gui.table.LabWorkTableModel;
 import org.example.models.Coordinates;
 import org.example.models.Difficulty;
@@ -10,11 +13,12 @@ import org.example.models.LabWork;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import javax.swing.Timer;
+import java.io.File;
+import java.util.List;
 
 public class MainFrame extends JFrame {
     private final GuiClientService clientService;
@@ -27,13 +31,21 @@ public class MainFrame extends JFrame {
     private JComboBox<String> sortBox;
     private JComboBox<String> orderBox;
     private Timer autoRefreshTimer;
-    private boolean autoRefreshEnabled = true;
+    private JLabel userLabel;
+    private JLabel languageLabel;
+    private JLabel filterLabel;
+    private JLabel sortLabel;
+
+    private JComboBox<GuiLocale> languageBox;
+    private JButton clearFilterButton;
+    private JButton applyButton;
+    private List<JButton> commandButtons = new ArrayList<>();
 
     private List<LabWork> allLabWorks = new ArrayList<>();
 
-    // Снегопад
     private SnowfallOverlay snowfallOverlay;
     private JCheckBox snowToggleButton;
+    private final Set<String> executingScripts = new HashSet<>();
 
     public MainFrame(GuiClientService clientService) {
         this.clientService = clientService;
@@ -56,13 +68,9 @@ public class MainFrame extends JFrame {
 
         initComponents();
 
-        // Инициализация снегопада после создания всех компонентов
-        SwingUtilities.invokeLater(() -> {
-            initSnowfallOverlay();
-        });
+        SwingUtilities.invokeLater(this::initSnowfallOverlay);
 
         refreshCollection();
-        startAutoRefresh();
     }
 
     private void initComponents() {
@@ -74,6 +82,9 @@ public class MainFrame extends JFrame {
         root.add(createTopPanel(), BorderLayout.NORTH);
         root.add(createCenterPanel(), BorderLayout.CENTER);
         root.add(createButtonsPanel(), BorderLayout.SOUTH);
+
+        updateTexts();
+        LocaleManager.addLocaleChangeListener(this::updateTexts);
     }
 
     private JPanel createTopPanel() {
@@ -84,23 +95,22 @@ public class MainFrame extends JFrame {
         JPanel userPanel = new JPanel(new BorderLayout());
         userPanel.setBackground(Color.WHITE);
 
-        JLabel userLabel = new JLabel("Пользователь:   " + clientService.getLogin());
+        userLabel = new JLabel();
         userLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         rightPanel.setBackground(Color.WHITE);
 
-        JLabel languageLabel = new JLabel("Язык:");
-        JComboBox<String> languageBox = new JComboBox<>(new String[]{
-                "Русский (Россия)",
-                "Белорусский",
-                "Латышский",
-                "English (Ireland)"
+        languageLabel = new JLabel();
+        languageBox = new JComboBox<>(GuiLocale.values());
+        languageBox.setSelectedItem(LocaleManager.getCurrentGuiLocale());
+        languageBox.addActionListener(e -> {
+            GuiLocale selected = (GuiLocale) languageBox.getSelectedItem();
+            LocaleManager.setCurrentLocale(selected);
         });
         languageBox.setPreferredSize(new Dimension(260, 34));
 
-        // Кнопка включения/выключения снегопада
-        snowToggleButton = new JCheckBox("Снегопад");
+        snowToggleButton = new JCheckBox(LocaleManager.get("main.snowfall"));
         snowToggleButton.setFont(new Font("Arial", Font.PLAIN, 14));
         snowToggleButton.setBackground(Color.WHITE);
         snowToggleButton.setSelected(true);
@@ -121,11 +131,11 @@ public class MainFrame extends JFrame {
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         filterPanel.setBackground(Color.WHITE);
 
-        JLabel filterLabel = new JLabel("Фильтр (по любой колонке):");
+        filterLabel = new JLabel();
         filterField = new JTextField();
         filterField.setPreferredSize(new Dimension(330, 36));
 
-        JButton clearFilterButton = new JButton("Очистить");
+        clearFilterButton = new JButton();
         clearFilterButton.setPreferredSize(new Dimension(110, 36));
         clearFilterButton.addActionListener(e -> {
             filterField.setText("");
@@ -139,31 +149,33 @@ public class MainFrame extends JFrame {
         JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         sortPanel.setBackground(Color.WHITE);
 
+        sortLabel = new JLabel();
+
         sortBox = new JComboBox<>(new String[]{
                 "ID",
-                "Название",
+                LocaleManager.get("column.name"),
                 "X",
                 "Y",
-                "Мин. балл",
-                "Сложность",
-                "Дисциплина",
-                "Кол-во лаб.",
-                "Владелец (ID)",
-                "Дата создания"
+                LocaleManager.get("column.minimal.point"),
+                LocaleManager.get("column.difficulty"),
+                LocaleManager.get("column.discipline"),
+                LocaleManager.get("column.labs.count"),
+                LocaleManager.get("column.owner.id"),
+                LocaleManager.get("column.creation.date")
         });
         sortBox.setPreferredSize(new Dimension(190, 36));
 
         orderBox = new JComboBox<>(new String[]{
-                "По возрастанию",
-                "По убыванию"
+                LocaleManager.get("main.asc"),
+                LocaleManager.get("main.desc")
         });
         orderBox.setPreferredSize(new Dimension(190, 36));
 
-        JButton applyButton = new JButton("Применить");
+        applyButton = new JButton();
         applyButton.setPreferredSize(new Dimension(120, 36));
         applyButton.addActionListener(e -> applyFilterAndSort());
 
-        sortPanel.add(new JLabel("Сортировать по:"));
+        sortPanel.add(sortLabel);
         sortPanel.add(sortBox);
         sortPanel.add(orderBox);
         sortPanel.add(applyButton);
@@ -189,7 +201,7 @@ public class MainFrame extends JFrame {
         table.getTableHeader().setReorderingAllowed(false);
 
         JScrollPane tableScroll = new JScrollPane(table);
-        tableScroll.setBorder(BorderFactory.createTitledBorder("Таблица объектов"));
+        tableScroll.setBorder(BorderFactory.createTitledBorder(LocaleManager.get("main.table.title")));
 
         visualizationPanel = new VisualizationPanel();
         visualizationPanel.setClickHandler(this::showLabWorkInfo);
@@ -201,28 +213,42 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createButtonsPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 8, 12, 12));
+        JPanel panel = new JPanel(new GridLayout(2, 7, 12, 12)); // Изменено с 2x8 на 2x7
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(8, 0, 0, 0));
 
-        panel.add(createCommandButton("Обновить\n(Refresh)", this::refreshCollection));
-        panel.add(createCommandButton("Добавить\n(Add)", this::openAddDialog));
-        panel.add(createCommandButton("Добавить если макс\n(AddIfMax)", this::openAddIfMaxDialog));
-        panel.add(createCommandButton("Добавить если мин\n(AddIfMin)", this::openAddIfMinDialog));
-        panel.add(createCommandButton("Обновить по ID\n(UpdateById)", this::openEditDialog));
-        panel.add(createCommandButton("Удалить по ID\n(RemoveById)", this::removeSelectedById));
-        panel.add(createCommandButton("Удалить всё\n(RemoveAllBy)", this::removeAllByMinimalPoint));
-        panel.add(createCommandButton("Показать все\n(Show)", this::refreshCollection));
-        panel.add(createCommandButton("Очистить\n(Clear)", this::clearCollection));
+        // Очищаем список кнопок перед созданием
+        commandButtons.clear();
 
-        panel.add(createCommandButton("Фильтр по дисциплине\n(FilterByDiscipline)", this::filterByDisciplineCommand));
-        panel.add(createCommandButton("Фильтр начинается с\n(FilterStartsWith)", this::filterStartsWithCommand));
-        panel.add(createCommandButton("История\n(History)", () -> executeTextCommand("history")));
-        panel.add(createCommandButton("Сохранить историю\n(SaveHistory)", () -> showMessage("Если SaveHistory есть только на клиенте, её сделаем отдельно")));
-        panel.add(createCommandButton("Выполнить скрипт\n(ExecuteScript)", () -> showMessage("ExecuteScript для GUI сделаем отдельно")));
-        panel.add(createCommandButton("Информация\n(Info)", () -> executeTextCommand("info")));
-        panel.add(createCommandButton("Справка\n(Help)", () -> executeTextCommand("help")));
-        panel.add(createCommandButton("Выход\n(Exit)", this::exitApplication));
+        // Создаем кнопки и сохраняем их (без Show и Help)
+        JButton refreshBtn = createCommandButton(LocaleManager.get("button.refresh") + "\n(Refresh)", this::refreshCollection);
+        JButton addBtn = createCommandButton(LocaleManager.get("button.add") + "\n(Add)", this::openAddDialog);
+        JButton addIfMaxBtn = createCommandButton(LocaleManager.get("button.add.if.max") + "\n(AddIfMax)", this::openAddIfMaxDialog);
+        JButton addIfMinBtn = createCommandButton(LocaleManager.get("button.add.if.min") + "\n(AddIfMin)", this::openAddIfMinDialog);
+        JButton updateBtn = createCommandButton(LocaleManager.get("button.update") + "\n(UpdateById)", this::openEditDialog);
+        JButton removeBtn = createCommandButton(LocaleManager.get("button.remove") + "\n(RemoveById)", this::removeSelectedById);
+        JButton removeAllBtn = createCommandButton(LocaleManager.get("button.remove.all") + "\n(RemoveAllBy)", this::removeAllByMinimalPoint);
+        JButton clearBtn = createCommandButton(LocaleManager.get("button.clear") + "\n(Clear)", this::clearCollection);
+
+        JButton filterDisciplineBtn = createCommandButton(LocaleManager.get("button.filter.discipline") + "\n(FilterByDiscipline)", this::filterByDisciplineCommand);
+        JButton filterNameBtn = createCommandButton(LocaleManager.get("button.filter.name") + "\n(FilterStartsWith)", this::filterStartsWithCommand);
+        JButton historyBtn = createCommandButton(LocaleManager.get("button.history") + "\n(History)", () -> executeTextCommand("history"));
+        JButton scriptBtn = createCommandButton(LocaleManager.get("button.script") + "\n(ExecuteScript)", this::executeScriptFromFile);
+        JButton infoBtn = createCommandButton(LocaleManager.get("button.info") + "\n(Info)", () -> executeTextCommand("info"));
+        JButton exitBtn = createCommandButton(LocaleManager.get("button.exit") + "\n(Exit)", this::exitApplication);
+
+        // Добавляем все кнопки в список (14 кнопок -> 2 ряда по 7)
+        commandButtons.addAll(Arrays.asList(
+                refreshBtn, addBtn, addIfMaxBtn, addIfMinBtn, updateBtn,
+                removeBtn, removeAllBtn, clearBtn,
+                filterDisciplineBtn, filterNameBtn, historyBtn,
+                scriptBtn, infoBtn, exitBtn
+        ));
+
+        // Добавляем кнопки на панель
+        for (JButton btn : commandButtons) {
+            panel.add(btn);
+        }
 
         return panel;
     }
@@ -236,15 +262,12 @@ public class MainFrame extends JFrame {
         return button;
     }
 
-    // Инициализация снегопада
     private void initSnowfallOverlay() {
         snowfallOverlay = new SnowfallOverlay(getWidth(), getHeight());
         snowfallOverlay.setOpaque(false);
 
-        // Добавляем в самый верхний слой
         getLayeredPane().add(snowfallOverlay, JLayeredPane.PALETTE_LAYER);
 
-        // Обновляем размер при изменении окна
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
@@ -255,16 +278,13 @@ public class MainFrame extends JFrame {
             }
         });
 
-        // Устанавливаем начальные границы
         snowfallOverlay.setBounds(0, 0, getWidth(), getHeight());
     }
 
-    // Включение/выключение снегопада
     private void toggleSnowfall(boolean enable) {
         if (snowfallOverlay != null) {
             if (enable) {
                 if (!snowfallOverlay.isVisible()) {
-                    // Пересоздаем для возобновления
                     getLayeredPane().remove(snowfallOverlay);
                     snowfallOverlay = new SnowfallOverlay(getWidth(), getHeight());
                     snowfallOverlay.setBounds(0, 0, getWidth(), getHeight());
@@ -284,25 +304,40 @@ public class MainFrame extends JFrame {
             Request response = clientService.executeSimpleCommand("show");
 
             if (!clientService.isSuccess(response)) {
-                showMessage(clientService.getResponseText(response));
+                String localizedMessage = clientService.getResponseText(response);
+                showMessage(localizedMessage);
                 return;
             }
 
             String text = clientService.getResponseText(response);
-            allLabWorks = parseLabWorksFromShow(text);
 
-            tableModel.setLabWorks(allLabWorks);
-            visualizationPanel.setLabWorks(allLabWorks);
+            if (text == null || text.isBlank() || text.contains("Пусто") || text.contains("empty")) {
+                showMessage(LocaleManager.get("server.empty.collection"));
+                allLabWorks = new ArrayList<>();
+            } else {
+                allLabWorks = parseLabWorksFromShow(text);
+            }
+
+            if (tableModel != null) {
+                tableModel.setLabWorks(allLabWorks);
+            }
+            if (visualizationPanel != null) {
+                visualizationPanel.setLabWorks(allLabWorks);
+            }
 
         } catch (Exception e) {
-            showMessage("Ошибка обновления коллекции:\n" + e.getMessage());
+            showMessage(LocaleManager.get("message.error.refresh") + ":\n" + e.getMessage());
         }
     }
 
     private void applyFilterAndSort() {
-        String filter = filterField.getText().trim().toLowerCase();
-        String sortColumn = (String) sortBox.getSelectedItem();
-        boolean desc = orderBox.getSelectedIndex() == 1;
+        if (tableModel == null) {
+            return;
+        }
+
+        String filter = filterField == null ? "" : filterField.getText().trim().toLowerCase();
+        String sortColumn = sortBox == null ? "ID" : (String) sortBox.getSelectedItem();
+        boolean desc = orderBox != null && orderBox.getSelectedIndex() == 1;
 
         List<LabWork> result = allLabWorks.stream()
                 .filter(lab -> filter.isEmpty() || labToSearchString(lab).contains(filter))
@@ -310,7 +345,9 @@ public class MainFrame extends JFrame {
                 .toList();
 
         tableModel.setLabWorks(result);
-        visualizationPanel.setLabWorks(result);
+        if (visualizationPanel != null) {
+            visualizationPanel.setLabWorks(result);
+        }
     }
 
     private String labToSearchString(LabWork lab) {
@@ -348,23 +385,24 @@ public class MainFrame extends JFrame {
     private void executeTextCommand(String command) {
         try {
             Request response = clientService.executeSimpleCommand(command);
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = clientService.getResponseText(response);
+            showMessage(localizedMessage);
         } catch (Exception e) {
-            showMessage("Ошибка выполнения команды:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private void removeSelectedById() {
         LabWork selected = getSelectedLabWork();
         if (selected == null) {
-            showMessage("Выберите объект в таблице");
+            showMessage(LocaleManager.get("message.select.object"));
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Удалить объект с ID " + selected.getId() + "?",
-                "Подтверждение",
+                LocaleManager.get("message.confirm.remove") + " " + selected.getId() + "?",
+                LocaleManager.get("dialog.confirm.title"),
                 JOptionPane.YES_NO_OPTION
         );
 
@@ -378,19 +416,20 @@ public class MainFrame extends JFrame {
                     String.valueOf(selected.getId())
             );
 
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = clientService.getResponseText(response);
+            showMessage(localizedMessage);
             refreshCollection();
 
         } catch (Exception e) {
-            showMessage("Ошибка удаления:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private void clearCollection() {
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Очистить свои объекты?",
-                "Подтверждение",
+                LocaleManager.get("message.confirm.clear"),
+                LocaleManager.get("dialog.confirm.title"),
                 JOptionPane.YES_NO_OPTION
         );
 
@@ -400,18 +439,19 @@ public class MainFrame extends JFrame {
 
         try {
             Request response = clientService.executeSimpleCommand("clear");
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = clientService.getResponseText(response);
+            showMessage(localizedMessage);
             refreshCollection();
         } catch (Exception e) {
-            showMessage("Ошибка очистки:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private void removeAllByMinimalPoint() {
         String value = JOptionPane.showInputDialog(
                 this,
-                "Введите минимальный балл:",
-                "RemoveAllBy",
+                LocaleManager.get("dialog.enter.minimal.point"),
+                LocaleManager.get("button.remove.all"),
                 JOptionPane.PLAIN_MESSAGE
         );
 
@@ -421,21 +461,22 @@ public class MainFrame extends JFrame {
 
         try {
             Request response = clientService.executeSimpleCommand(
-                    "remove_all_by_minimal_points",
+                    "remove_all_by_minimal_point",
                     value.trim()
             );
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = ServerResponseLocalizer.localize(response);
+            showMessage(localizedMessage);
             refreshCollection();
         } catch (Exception e) {
-            showMessage("Ошибка удаления:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private void filterByDisciplineCommand() {
         String value = JOptionPane.showInputDialog(
                 this,
-                "Введите название дисциплины:",
-                "FilterByDiscipline",
+                LocaleManager.get("dialog.enter.discipline.name"),
+                LocaleManager.get("button.filter.discipline"),
                 JOptionPane.PLAIN_MESSAGE
         );
 
@@ -448,17 +489,18 @@ public class MainFrame extends JFrame {
                     "filter_by_discipline",
                     value.trim()
             );
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = ServerResponseLocalizer.localize(response);
+            showMessage(localizedMessage);
         } catch (Exception e) {
-            showMessage("Ошибка фильтрации:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private void filterStartsWithCommand() {
         String value = JOptionPane.showInputDialog(
                 this,
-                "Введите начало названия:",
-                "FilterStartsWith",
+                LocaleManager.get("dialog.enter.name.start"),
+                LocaleManager.get("button.filter.name"),
                 JOptionPane.PLAIN_MESSAGE
         );
 
@@ -471,15 +513,16 @@ public class MainFrame extends JFrame {
                     "filter_starts_with_name",
                     value.trim()
             );
-            showMessage(clientService.getResponseText(response));
+            String localizedMessage = ServerResponseLocalizer.localize(response);
+            showMessage(localizedMessage);
         } catch (Exception e) {
-            showMessage("Ошибка фильтрации:\n" + e.getMessage());
+            showMessage(LocaleManager.get("login.connection.error") + ":\n" + e.getMessage());
         }
     }
 
     private LabWork getSelectedLabWork() {
         int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
+        if (selectedRow < 0 || tableModel == null) {
             return null;
         }
 
@@ -487,31 +530,31 @@ public class MainFrame extends JFrame {
     }
 
     private void showLabWorkInfo(LabWork labWork) {
-        String text = """
-                ID: %s
-                Название: %s
-                Координата X: %s
-                Координата Y: %s
-                Минимальный балл: %s
-                Сложность: %s
-                Дисциплина: %s
-                Количество лабораторных: %s
-                Владелец (ID): %s
-                Дата создания: %s
-                """.formatted(
-                labWork.getId(),
-                labWork.getName(),
-                labWork.getCoordinates().getX(),
-                labWork.getCoordinates().getY(),
-                labWork.getMinimalPoint(),
-                labWork.getDifficulty(),
-                labWork.getDiscipline().getName(),
-                labWork.getDiscipline().getLabsCount(),
-                labWork.getOwnerId(),
-                labWork.getCreationDate()
+        String text = String.format("""
+                %s: %d
+                %s: %s
+                %s: %d
+                %s: %d
+                %s: %.2f
+                %s: %s
+                %s: %s
+                %s: %d
+                %s: %d
+                %s: %s
+                """,
+                LocaleManager.get("column.id"), labWork.getId(),
+                LocaleManager.get("column.name"), labWork.getName(),
+                "X", labWork.getCoordinates().getX(),
+                "Y", labWork.getCoordinates().getY(),
+                LocaleManager.get("column.minimal.point"), labWork.getMinimalPoint(),
+                LocaleManager.get("column.difficulty"), labWork.getDifficulty(),
+                LocaleManager.get("column.discipline"), labWork.getDiscipline().getName(),
+                LocaleManager.get("column.labs.count"), labWork.getDiscipline().getLabsCount(),
+                LocaleManager.get("column.owner.id"), labWork.getOwnerId(),
+                LocaleManager.get("column.creation.date"), labWork.getCreationDate()
         );
 
-        JOptionPane.showMessageDialog(this, text, "Информация об объекте", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, text, LocaleManager.get("dialog.object.info.title"), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void openAddDialog() {
@@ -520,7 +563,7 @@ public class MainFrame extends JFrame {
                 clientService,
                 this::refreshCollection,
                 "add",
-                "Добавление объекта"
+                LocaleManager.get("dialog.add.title")
         );
         dialog.setVisible(true);
     }
@@ -531,7 +574,7 @@ public class MainFrame extends JFrame {
                 clientService,
                 this::refreshCollection,
                 "add_if_max",
-                "Добавить, если максимальный"
+                LocaleManager.get("button.add.if.max")
         );
         dialog.setVisible(true);
     }
@@ -542,7 +585,7 @@ public class MainFrame extends JFrame {
                 clientService,
                 this::refreshCollection,
                 "add_if_min",
-                "Добавить, если минимальный"
+                LocaleManager.get("button.add.if.min")
         );
         dialog.setVisible(true);
     }
@@ -551,7 +594,7 @@ public class MainFrame extends JFrame {
         LabWork selected = getSelectedLabWork();
 
         if (selected == null) {
-            showMessage("Выберите объект в таблице");
+            showMessage(LocaleManager.get("message.select.object"));
             return;
         }
 
@@ -618,36 +661,6 @@ public class MainFrame extends JFrame {
         }
 
         return result;
-    }
-
-    private void startAutoRefresh() {
-        autoRefreshTimer = new Timer(3000, e -> {
-            if (autoRefreshEnabled) {
-                refreshCollectionSilently();
-            }
-        });
-
-        autoRefreshTimer.start();
-    }
-
-    private void refreshCollectionSilently() {
-        try {
-            Request response = clientService.executeSimpleCommand("show");
-
-            if (!clientService.isSuccess(response)) {
-                return;
-            }
-
-            String text = clientService.getResponseText(response);
-            List<LabWork> updatedLabWorks = parseLabWorksFromShow(text);
-
-            if (!isSameCollection(allLabWorks, updatedLabWorks)) {
-                allLabWorks = updatedLabWorks;
-                applyFilterAndSort();
-            }
-
-        } catch (Exception ignored) {
-        }
     }
 
     private boolean isSameCollection(List<LabWork> oldList, List<LabWork> newList) {
@@ -717,6 +730,46 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void executeScript(File file) {
+        if (file == null || !file.exists()) {
+            showMessage(LocaleManager.get("message.file.not.found"));
+            return;
+        }
+
+        try {
+            String scriptText = Files.readString(file.toPath());
+
+            Request response = clientService.executeSimpleCommand(
+                    "execute_script",
+                    scriptText
+            );
+
+            if (response != null) {
+                showMessage(LocaleManager.get("message.script.completed") + "\n" + LocaleManager.get("message.errors") + ": " + response.getData());
+                refreshCollection();
+            } else {
+                showMessage(LocaleManager.get("message.server.no.response"));
+            }
+
+        } catch (Exception e) {
+            showMessage(LocaleManager.get("message.script.error") + ":\n" + e.getMessage());
+        }
+    }
+
+    private void executeScriptFromFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle(LocaleManager.get("dialog.select.script.file"));
+
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = fileChooser.getSelectedFile();
+        executeScript(file);
+    }
+
     private String extract(String text, String from, String to) {
         int start = text.indexOf(from);
         if (start < 0) {
@@ -731,5 +784,99 @@ public class MainFrame extends JFrame {
         }
 
         return text.substring(start, end);
+    }
+
+    private void updateButtonsText() {
+        // Обновленный список ключей для кнопок (без show и help)
+        String[] buttonKeys = {
+                "button.refresh", "button.add", "button.add.if.max", "button.add.if.min",
+                "button.update", "button.remove", "button.remove.all", "button.clear",
+                "button.filter.discipline", "button.filter.name", "button.history",
+                "button.script", "button.info", "button.exit"
+        };
+
+        // Английские подписи для кнопок
+        String[] englishLabels = {
+                "Refresh", "Add", "AddIfMax", "AddIfMin",
+                "UpdateById", "RemoveById", "RemoveAllBy", "Clear",
+                "FilterByDiscipline", "FilterStartsWith", "History",
+                "ExecuteScript", "Info", "Exit"
+        };
+
+        for (int i = 0; i < commandButtons.size() && i < buttonKeys.length; i++) {
+            JButton btn = commandButtons.get(i);
+            String localizedText = LocaleManager.get(buttonKeys[i]);
+            btn.setText("<html><center>" + localizedText + "\n(" + englishLabels[i] + ")</center></html>");
+        }
+    }
+
+    private void updateTexts() {
+        setTitle(LocaleManager.get("app.title"));
+
+        if (userLabel != null) {
+            userLabel.setText(LocaleManager.get("main.user") + "   " + clientService.getLogin());
+        }
+
+        if (languageLabel != null) {
+            languageLabel.setText(LocaleManager.get("main.language"));
+        }
+
+        if (snowToggleButton != null) {
+            snowToggleButton.setText(LocaleManager.get("main.snowfall"));
+        }
+
+        if (filterLabel != null) {
+            filterLabel.setText(LocaleManager.get("main.filter"));
+        }
+
+        if (clearFilterButton != null) {
+            clearFilterButton.setText(LocaleManager.get("main.clear.filter"));
+        }
+
+        if (sortLabel != null) {
+            sortLabel.setText(LocaleManager.get("main.sort"));
+        }
+
+        if (applyButton != null) {
+            applyButton.setText(LocaleManager.get("main.apply"));
+        }
+
+        if (orderBox != null) {
+            int selected = orderBox.getSelectedIndex();
+            orderBox.removeAllItems();
+            orderBox.addItem(LocaleManager.get("main.asc"));
+            orderBox.addItem(LocaleManager.get("main.desc"));
+            orderBox.setSelectedIndex(Math.max(0, selected));
+        }
+
+        if (sortBox != null) {
+            String selected = (String) sortBox.getSelectedItem();
+            sortBox.removeAllItems();
+            sortBox.addItem("ID");
+            sortBox.addItem(LocaleManager.get("column.name"));
+            sortBox.addItem("X");
+            sortBox.addItem("Y");
+            sortBox.addItem(LocaleManager.get("column.minimal.point"));
+            sortBox.addItem(LocaleManager.get("column.difficulty"));
+            sortBox.addItem(LocaleManager.get("column.discipline"));
+            sortBox.addItem(LocaleManager.get("column.labs.count"));
+            sortBox.addItem(LocaleManager.get("column.owner.id"));
+            sortBox.addItem(LocaleManager.get("column.creation.date"));
+            if (selected != null) {
+                sortBox.setSelectedItem(selected);
+            }
+        }
+
+        if (tableModel != null) {
+            tableModel.updateLocale();
+        }
+
+        if (visualizationPanel != null) {
+            visualizationPanel.updateLocale();
+        }
+
+        updateButtonsText();
+
+        applyFilterAndSort();
     }
 }

@@ -191,7 +191,6 @@ public class DatabaseManager {
                 rs.getInt("discipline_labs_count")
         ));
 
-        // ВАЖНО: загружаем ownerId из БД
         int ownerId = rs.getInt("user_id");
         lab.setOwnerId(ownerId);
 

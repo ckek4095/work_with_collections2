@@ -1,6 +1,8 @@
 package org.example.gui;
 
 import org.example.Request;
+import org.example.gui.localization.GuiLocale;
+import org.example.gui.localization.LocaleManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,8 +15,22 @@ public class RegisterFrame extends JFrame {
     private JTextField loginField;
     private JPasswordField passwordField;
     private JPasswordField repeatPasswordField;
-    private JComboBox<String> languageBox;
     private JLabel errorLabel;
+    private JLabel titleLabel;
+    private JLabel loginLabel;
+    private JLabel passwordLabel;
+    private JLabel repeatPasswordLabel;
+    private JLabel languageLabel;
+
+    private JButton registerButton;
+    private JButton cancelButton;
+
+    private JComboBox<GuiLocale> languageBox;
+
+    private JLabel passwordRequirementsLabel;
+    private JLabel passwordRule1Label;
+    private JLabel passwordRule2Label;
+    private JLabel passwordRule3Label;
 
     public RegisterFrame(GuiClientService clientService, LoginFrame loginFrame) {
         this.clientService = clientService;
@@ -39,7 +55,7 @@ public class RegisterFrame extends JFrame {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBorder(new EmptyBorder(55, 0, 35, 0));
 
-        JLabel titleLabel = new JLabel("Регистрация");
+        titleLabel = new JLabel();
         titleLabel.setFont(new Font("Arial", Font.BOLD, 30));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -56,12 +72,15 @@ public class RegisterFrame extends JFrame {
         passwordField = new JPasswordField();
         repeatPasswordField = new JPasswordField();
 
-        centerPanel.add(createFieldRow("Логин:", loginField));
+        loginLabel = new JLabel();
+        passwordLabel = new JLabel();
+        repeatPasswordLabel = new JLabel();
+
+        centerPanel.add(createFieldRow(loginLabel, loginField));
         centerPanel.add(Box.createVerticalStrut(20));
-        centerPanel.add(createFieldRow("Пароль:", passwordField));
+        centerPanel.add(createFieldRow(passwordLabel, passwordField));
         centerPanel.add(Box.createVerticalStrut(20));
-        centerPanel.add(createFieldRow("Повторите пароль:", repeatPasswordField));
-        centerPanel.add(Box.createVerticalStrut(30));
+        centerPanel.add(createFieldRow(repeatPasswordLabel, repeatPasswordField));
 
         JPanel requirementsPanel = createRequirementsPanel();
         requirementsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -72,8 +91,8 @@ public class RegisterFrame extends JFrame {
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 0));
         buttonsPanel.setBackground(Color.WHITE);
 
-        JButton registerButton = new JButton("Зарегистрироваться");
-        JButton cancelButton = new JButton("Отмена");
+        registerButton = new JButton();
+        cancelButton = new JButton();
 
         styleMainButton(registerButton);
         styleSecondaryButton(cancelButton);
@@ -104,14 +123,14 @@ public class RegisterFrame extends JFrame {
         JPanel languagePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         languagePanel.setBackground(Color.WHITE);
 
-        JLabel languageLabel = new JLabel("Язык:");
+        languageLabel = new JLabel();
         languageLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        languageBox = new JComboBox<>(new String[]{
-                "Русский (Россия)",
-                "Белорусский",
-                "Латышский",
-                "English (Ireland)"
+        languageBox = new JComboBox<>(GuiLocale.values());
+        languageBox.setSelectedItem(LocaleManager.getCurrentGuiLocale());
+        languageBox.addActionListener(e -> {
+            GuiLocale selected = (GuiLocale) languageBox.getSelectedItem();
+            LocaleManager.setCurrentLocale(selected);
         });
         languageBox.setPreferredSize(new Dimension(250, 36));
 
@@ -121,13 +140,15 @@ public class RegisterFrame extends JFrame {
         centerPanel.add(languagePanel);
 
         root.add(centerPanel, BorderLayout.CENTER);
+
+        updateTexts();
+        LocaleManager.addLocaleChangeListener(this::updateTexts);
     }
 
-    private JPanel createFieldRow(String labelText, JComponent field) {
+    private JPanel createFieldRow(JLabel label, JComponent field) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         row.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel(labelText);
         label.setFont(new Font("Arial", Font.PLAIN, 17));
         label.setPreferredSize(new Dimension(170, 42));
 
@@ -150,25 +171,25 @@ public class RegisterFrame extends JFrame {
         ));
         panel.setMaximumSize(new Dimension(530, 120));
 
-        JLabel title = new JLabel("Требования к паролю:");
-        title.setFont(new Font("Arial", Font.PLAIN, 15));
+        passwordRequirementsLabel = new JLabel();
+        passwordRequirementsLabel.setFont(new Font("Arial", Font.PLAIN, 15));
 
-        JLabel r1 = new JLabel("• не менее 4 символов");
-        JLabel r2 = new JLabel("• логин не менее 3 символов");
-        JLabel r3 = new JLabel("• пароль не должен быть пустым");
+        passwordRule1Label = new JLabel();
+        passwordRule2Label = new JLabel();
+        passwordRule3Label = new JLabel();
 
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        r1.setAlignmentX(Component.LEFT_ALIGNMENT);
-        r2.setAlignmentX(Component.LEFT_ALIGNMENT);
-        r3.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordRequirementsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordRule1Label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordRule2Label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordRule3Label.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        panel.add(title);
+        panel.add(passwordRequirementsLabel);
         panel.add(Box.createVerticalStrut(8));
-        panel.add(r1);
+        panel.add(passwordRule1Label);
         panel.add(Box.createVerticalStrut(5));
-        panel.add(r2);
+        panel.add(passwordRule2Label);
         panel.add(Box.createVerticalStrut(5));
-        panel.add(r3);
+        panel.add(passwordRule3Label);
 
         return panel;
     }
@@ -195,12 +216,12 @@ public class RegisterFrame extends JFrame {
         String repeatPassword = new String(repeatPasswordField.getPassword());
 
         if (login.isEmpty() || password.isEmpty() || repeatPassword.isEmpty()) {
-            errorLabel.setText("Заполните все поля");
+            errorLabel.setText(LocaleManager.get("register.empty"));
             return;
         }
 
         if (!password.equals(repeatPassword)) {
-            errorLabel.setText("Пароли не совпадают");
+            errorLabel.setText(LocaleManager.get("register.passwords.not.match"));
             return;
         }
 
@@ -210,22 +231,99 @@ public class RegisterFrame extends JFrame {
             if (clientService.isSuccess(response)) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Регистрация выполнена успешно",
-                        "Успех",
+                        LocaleManager.get("register.success"),
+                        LocaleManager.get("dialog.success.title"),
                         JOptionPane.INFORMATION_MESSAGE
                 );
                 backToLogin();
             } else {
-                errorLabel.setText(clientService.getResponseText(response));
+                // Используем локализацию
+                String localizedMessage = clientService.getResponseText(response);
+                errorLabel.setText(localizedMessage);
             }
 
         } catch (Exception ex) {
-            errorLabel.setText("Ошибка подключения к серверу");
+            errorLabel.setText(LocaleManager.get("login.connection.error"));
         }
     }
 
     private void backToLogin() {
         loginFrame.setVisible(true);
         dispose();
+    }
+
+    private void updateTexts() {
+        setTitle(LocaleManager.get("app.title"));
+
+        if (titleLabel != null) {
+            titleLabel.setText(LocaleManager.get("register.title"));
+        }
+
+        if (loginLabel != null) {
+            loginLabel.setText(LocaleManager.get("login.login"));
+        }
+
+        if (passwordLabel != null) {
+            passwordLabel.setText(LocaleManager.get("login.password"));
+        }
+
+        if (repeatPasswordLabel != null) {
+            repeatPasswordLabel.setText(LocaleManager.get("register.repeat.password"));
+        }
+
+        if (registerButton != null) {
+            registerButton.setText(LocaleManager.get("register.button"));
+        }
+
+        if (cancelButton != null) {
+            cancelButton.setText(LocaleManager.get("register.cancel"));
+        }
+
+        if (languageLabel != null) {
+            languageLabel.setText(LocaleManager.get("login.language"));
+        }
+
+        if (passwordRequirementsLabel != null) {
+            passwordRequirementsLabel.setText(LocaleManager.get("password_requirements"));
+        }
+
+        if (passwordRule1Label != null) {
+            passwordRule1Label.setText(LocaleManager.get("password_rule_1"));
+        }
+
+        if (passwordRule2Label != null) {
+            passwordRule2Label.setText(LocaleManager.get("password_rule_2"));
+        }
+
+        if (passwordRule3Label != null) {
+            passwordRule3Label.setText(LocaleManager.get("password_rule_3"));
+        }
+    }
+
+    private String localizeServerMessage(String serverMessage) {
+        if (serverMessage == null || serverMessage.isEmpty()) {
+            return serverMessage;
+        }
+
+        // Проверка на неверные учетные данные
+        if (serverMessage.contains("Ошибка авторизации: неверный логин или пароль")){
+            return LocaleManager.get("server.invalid.credentials");
+        }
+
+        // Проверка на ошибку подкл
+        if (serverMessage.contains("Время ожидания ответа истекло")) {
+            return LocaleManager.get("server.timeout.error");
+        }
+
+        if (serverMessage.contains("Ошибка: пароль должен содержать не менее 4 символов")) {
+            return LocaleManager.get("server.password.error");
+        }
+
+        if (serverMessage.contains("Ошибка: логин должен содержать не менее 3 символов")) {
+            return LocaleManager.get("server.login.error");
+        }
+
+
+        return serverMessage;
     }
 }

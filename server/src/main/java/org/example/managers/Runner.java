@@ -211,8 +211,7 @@ public class Runner {
 
             if (currentUser == null) {
                 response.setCommandName("error");
-                response.setData("Ошибка авторизации. Неверный логин или пароль.\n" +
-                        "Используйте 'auth <логин> <пароль>' для входа или 'register <логин> <пароль>' для регистрации");
+                response.setData("Ошибка авторизации. Неверный логин или пароль");
                 return response;
             }
 
@@ -268,15 +267,6 @@ public class Runner {
             password = args[1];
         }
 
-        // Если всё еще нет логина/пароля, проверяем в теле запроса
-        if (login == null || password == null || login.trim().isEmpty() || password.trim().isEmpty()) {
-            response.setCommandName("error");
-            response.setData("Ошибка: необходимо указать логин и пароль.\n" +
-                    "Формат: auth <логин> <пароль>\n" +
-                    "Или передайте логин и пароль в запросе");
-            return response;
-        }
-
         User user = authManager.authenticate(login, password);
 
         if (user != null) {
@@ -285,8 +275,7 @@ public class Runner {
                     "Теперь вы можете выполнять команды. Для справки используйте 'help'");
         } else {
             response.setCommandName("error");
-            response.setData("Ошибка авторизации: неверный логин или пароль.\n" +
-                    "Если у вас нет аккаунта, используйте 'register <логин> <пароль>'");
+            response.setData("Ошибка авторизации: неверный логин или пароль");
         }
         return response;
     }
@@ -308,15 +297,6 @@ public class Runner {
             password = args[1];
         }
 
-        // Валидация
-        if (login == null || password == null || login.trim().isEmpty() || password.trim().isEmpty()) {
-            response.setCommandName("error");
-            response.setData("Ошибка: необходимо указать логин и пароль.\n" +
-                    "Формат: register <логин>\n" +
-                    "Логин и пароль не могут быть пустыми");
-            return response;
-        }
-
         if (login.length() < 3) {
             response.setCommandName("error");
             response.setData("Ошибка: логин должен содержать не менее 3 символов");
@@ -334,11 +314,10 @@ public class Runner {
 
         if (registered) {
             response.setCommandName("success");
-            response.setData("Регистрация успешна! Теперь вы можете авторизоваться с помощью команды 'auth " + login + " <пароль>'");
+            response.setData("Регистрация успешна! Теперь вы можете авторизоваться");
         } else {
             response.setCommandName("error");
-            response.setData("Ошибка регистрации. Возможно, пользователь с таким логином уже существует.\n" +
-                    "Попробуйте другой логин или используйте 'auth' для входа");
+            response.setData("Ошибка регистрации. Возможно, пользователь с таким логином уже существует");
         }
 
         return response;

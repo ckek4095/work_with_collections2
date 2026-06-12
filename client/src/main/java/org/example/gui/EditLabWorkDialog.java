@@ -1,5 +1,7 @@
 package org.example.gui;
 
+import org.example.gui.localization.LocaleManager;
+import org.example.gui.localization.ServerResponseLocalizer;
 import org.example.models.Coordinates;
 import org.example.models.Difficulty;
 import org.example.models.Discipline;
@@ -27,7 +29,8 @@ public class EditLabWorkDialog extends JDialog {
                              GuiClientService clientService,
                              Runnable refreshCallback,
                              LabWork oldLabWork) {
-        super(parent, "Редактирование объекта", true);
+        // Заменили жестко заданный заголовок окна
+        super(parent, LocaleManager.get("dialog.edit.title"), true);
         this.clientService = clientService;
         this.refreshCallback = refreshCallback;
         this.oldLabWork = oldLabWork;
@@ -46,11 +49,11 @@ public class EditLabWorkDialog extends JDialog {
         root.setBorder(new EmptyBorder(24, 30, 24, 30));
         setContentPane(root);
 
-        JLabel titleLabel = new JLabel("Редактирование объекта");
+        JLabel titleLabel = new JLabel(LocaleManager.get("dialog.edit.title"));
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel idLabel = new JLabel("ID объекта: " + oldLabWork.getId());
+        JLabel idLabel = new JLabel(LocaleManager.get("column.id") + ": " + oldLabWork.getId());
         idLabel.setFont(new Font("Arial", Font.PLAIN, 15));
         idLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -80,25 +83,25 @@ public class EditLabWorkDialog extends JDialog {
         disciplineNameField = new JTextField();
         labsCountField = new JTextField();
 
-        form.add(createLabel("Название:"));
+        form.add(createLabel(LocaleManager.get("field.name")));
         form.add(nameField);
 
-        form.add(createLabel("Координата X:"));
+        form.add(createLabel(LocaleManager.get("field.x")));
         form.add(xField);
 
-        form.add(createLabel("Координата Y:"));
+        form.add(createLabel(LocaleManager.get("field.y")));
         form.add(yField);
 
-        form.add(createLabel("Минимальный балл:"));
+        form.add(createLabel(LocaleManager.get("field.minimal.point")));
         form.add(minimalPointField);
 
-        form.add(createLabel("Сложность:"));
+        form.add(createLabel(LocaleManager.get("field.difficulty")));
         form.add(difficultyBox);
 
-        form.add(createLabel("Дисциплина:"));
+        form.add(createLabel(LocaleManager.get("field.discipline")));
         form.add(disciplineNameField);
 
-        form.add(createLabel("Количество лабораторных:"));
+        form.add(createLabel(LocaleManager.get("field.labs.count")));
         form.add(labsCountField);
 
         root.add(form, BorderLayout.CENTER);
@@ -115,8 +118,9 @@ public class EditLabWorkDialog extends JDialog {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 18, 0));
         buttons.setBackground(Color.WHITE);
 
-        JButton saveButton = new JButton("Сохранить");
-        JButton cancelButton = new JButton("Отмена");
+        // Локализовали кнопки сохранения и отмены
+        JButton saveButton = new JButton(LocaleManager.get("button.save"));
+        JButton cancelButton = new JButton(LocaleManager.get("button.cancel"));
 
         styleButton(saveButton);
         styleButton(cancelButton);
@@ -178,7 +182,9 @@ public class EditLabWorkDialog extends JDialog {
                     args
             );
 
-            JOptionPane.showMessageDialog(this, clientService.getResponseText(response));
+            // Обрабатываем ответ через локализатор перед выводом
+            String localizedMessage = ServerResponseLocalizer.localize(response);
+            JOptionPane.showMessageDialog(this, localizedMessage);
 
             if (clientService.isSuccess(response)) {
                 refreshCallback.run();
@@ -188,7 +194,7 @@ public class EditLabWorkDialog extends JDialog {
         } catch (IllegalArgumentException ex) {
             errorLabel.setText(ex.getMessage());
         } catch (Exception ex) {
-            errorLabel.setText("Ошибка отправки данных на сервер");
+            errorLabel.setText(LocaleManager.get("server.generic.error"));
         }
     }
 
@@ -206,7 +212,7 @@ public class EditLabWorkDialog extends JDialog {
                 || minimalPointText.isEmpty()
                 || disciplineName.isEmpty()
                 || labsCountText.isEmpty()) {
-            throw new IllegalArgumentException("Заполните все поля");
+            throw new IllegalArgumentException(LocaleManager.get("message.fill.all"));
         }
 
         int x;
@@ -220,7 +226,7 @@ public class EditLabWorkDialog extends JDialog {
             minimalPoint = Float.parseFloat(minimalPointText.replace(",", "."));
             labsCount = Integer.parseInt(labsCountText);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Проверьте числовые поля");
+            throw new IllegalArgumentException(LocaleManager.get("message.number.error"));
         }
 
         if (minimalPoint <= 0) {

@@ -42,7 +42,7 @@ public enum CommandType {
     INFO("info", (colManager, helperInput, args, history, labWork, ownerId, databaseManager) -> 
         new Info(databaseManager)),
 
-    REMOVE_ALL_BY_MINIMAL_POINTS("remove_all_by_minimal_points", (colManager, helperInput, args, history, labWork, ownerId, databaseManager) -> 
+    REMOVE_ALL_BY_MINIMAL_POINTS("remove_all_by_minimal_point", (colManager, helperInput, args, history, labWork, ownerId, databaseManager) ->
         new RemoveAllBy(databaseManager, ownerId, args)),
 
     REMOVE_BY_ID("remove_by_id", (colManager, helperInput, args, history, labWork, ownerId, databaseManager) -> 

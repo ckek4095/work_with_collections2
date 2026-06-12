@@ -31,7 +31,7 @@ public class History implements Command {
         for (int i = 0; i < count; i++) {
             var elem = history.get(length - 1 - i);
             if (i == 0) {
-                result += elem + "   <--- последняя команда\n";
+                result += elem + "   <---\n";
             } else {
                 result += elem + "\n";
             }
