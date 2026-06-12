@@ -752,7 +752,7 @@ public class MainFrame extends JFrame {
             }
 
         } catch (Exception e) {
-            showMessage(LocaleManager.get("message.script.error") + ":\n" + e.getMessage());
+            showMessage(LocaleManager.get("message.script.error"));
         }
     }
 

@@ -23,7 +23,6 @@ public class ServerResponseLocalizer {
         EXACT_MATCH_MAP.put(">>> Упс, элемент не минимальный😭", "server.object.not.min");
         EXACT_MATCH_MAP.put("Пусто(((", "server.empty.collection");
 
-        // === Шаблоны для сообщений с параметрами ===
         // Add, AddIfMax, AddIfMin
         PATTERN_MAP.put(Pattern.compile(">>> Элемент успешно добавлен!?"), "server.object.added.success");
 
@@ -47,6 +46,8 @@ public class ServerResponseLocalizer {
         // FilterStartsWith
         PATTERN_MAP.put(Pattern.compile(">>> Элементы, начинающиеся с '(.*?)', не найдены"), "server.filter.prefix.not.found");
 
+        PATTERN_MAP.put(Pattern.compile("Тип коллекции: HashSet\nКоличество элементов: (\\d+)\n"), "server.info.command");
+
         // Ошибки
         PATTERN_MAP.put(Pattern.compile("Ошибка сохранения в БД"), "server.db.save.error");
         PATTERN_MAP.put(Pattern.compile("Ошибка БД:.*"), "server.database.error");
@@ -63,10 +64,8 @@ public class ServerResponseLocalizer {
         PATTERN_MAP.put(Pattern.compile("timeout"), "server.timeout.error");
         PATTERN_MAP.put(Pattern.compile("Таймаут"), "server.timeout.error");
 
-        // Show - данные коллекции (не локализуем, это данные)
         PATTERN_MAP.put(Pattern.compile("^-+$"), null); // игнорируем разделители
 
-        // Общие шаблоны
         PATTERN_MAP.put(Pattern.compile("(?i).*(success|успех|паспях|veiksm).*"), "server.generic.success");
         PATTERN_MAP.put(Pattern.compile("(?i).*(error|ошибк|памылк|kļūda).*"), "server.generic.error");
         PATTERN_MAP.put(Pattern.compile("(?i).*(timeout|таймаут|чаc|gaidīšanas).*"), "server.timeout.error");

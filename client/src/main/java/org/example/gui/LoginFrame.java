@@ -177,7 +177,7 @@ public class LoginFrame extends JFrame {
             } else {
                 // Используем локализацию
                 String localizedMessage = clientService.getResponseText(response);
-                errorLabel.setText(localizedMessage);
+                errorLabel.setText(localizeServerMessage(localizedMessage));
             }
 
         } catch (Exception ex) {

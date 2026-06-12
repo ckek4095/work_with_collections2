@@ -37,6 +37,7 @@ public class ExecuteScript implements Command {
         System.out.println("Начинается выполнение скрипта из файла: \n");
 
         String result = new String();
+        int count = 0;
 
         try (BufferedReader reader = new BufferedReader(new StringReader(args[0]))) {
             String line;
@@ -67,13 +68,13 @@ public class ExecuteScript implements Command {
                     commandManager.executeCommand(commandName, args, new LabWork(), ownerId).execute();
                 } catch (Exception e) {
                     System.err.println("Ошибка при выполнении команды '" + line + "': " + e.getMessage());
-                    result += "Ошибка при выполнении команды " + line + ": " + e.getMessage() + "; ";
+                    count++;
                 }
             }
 
         } catch (IOException e) {
             System.err.println("Ошибка при чтении содержимого файла: " + e.getMessage());
         }
-        return result;
+        return result + count;
     }
 }

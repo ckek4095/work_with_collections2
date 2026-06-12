@@ -40,6 +40,8 @@ public class GuiResources {
         ru.put("main.table.title", "Таблица объектов");
         ru.put("visualization.owners", "Владельцы объектов");
         ru.put("visualization.owner.id", "ID владельца");
+        ru.put("server.info.command",
+                "Тип коллекции: HashSet\nКоличество элементов: %s");
 
         ru.put("button.add", "Добавить");
         ru.put("button.add.if.max", "Добавить если макс");
@@ -154,6 +156,8 @@ public class GuiResources {
         ru.put("dialog.enter.name.start", "Поиск по началу названия");
         ru.put("dialog.select.script.file", "Выбор файла скрипта");
         ru.put("dialog.enter.minimal.point", "Введите минимальный балл");
+        ru.put("message.script.completed", "Выполнение скрипта завершено");
+        ru.put("message.errors", "Ошибок");
         DATA.put(GuiLocale.RU, ru);
 
         Map<String, String> be = new HashMap<>(ru);
@@ -193,6 +197,8 @@ public class GuiResources {
         be.put("main.visualization.title", "Візуалізацыя аб'ектаў");
         be.put("visualization.owners", "Уладальнікі аб'ектаў");
         be.put("visualization.owner.id", "ID уладальніка");
+        be.put("server.info.command",
+                "Тып калекцыі: HashSet\nКолькасць элементаў: %s");
 
         be.put("button.add", "Дадаць");
         be.put("button.add.if.max", "Дадаць калі макс");
@@ -301,6 +307,8 @@ public class GuiResources {
         be.put("dialog.enter.name.start", "Пошук па пачатку назвы");
         be.put("dialog.select.script.file", "Выбар файла скрыпта");
         be.put("dialog.enter.minimal.point", "Увядзіце мінімальны бал");
+        be.put("message.script.completed", "Выкананне скрыпта завершана");
+        be.put("message.errors", "Памылак");
         DATA.put(GuiLocale.BE, be);
 
         Map<String, String> lv = new HashMap<>();
@@ -340,6 +348,8 @@ public class GuiResources {
         lv.put("main.visualization.title", "Objektu vizualizācija");
         lv.put("visualization.owners", "Objektu īpašnieki");
         lv.put("visualization.owner.id", "Īpašnieka ID");
+        lv.put("server.info.command",
+                "Kolekcijas tips: HashSet\nElementu skaits: %s");
 
         lv.put("button.add", "Pievienot");
         lv.put("button.add.if.max", "Pievienot ja maks");
@@ -423,6 +433,8 @@ public class GuiResources {
         lv.put("dialog.enter.name.start", "Meklēšana pēc nosaukuma sākuma");
         lv.put("dialog.select.script.file", "Skripta faila izvēle");
         lv.put("dialog.enter.minimal.point", "Ievadiet minimālo punktu skaitu");
+        lv.put("message.script.completed", "Skripta izpilde pabeigta");
+        lv.put("message.errors", "Kļūdu skaits");
         DATA.put(GuiLocale.LV, lv);
 
         Map<String, String> en = new HashMap<>();
@@ -463,6 +475,8 @@ public class GuiResources {
         en.put("main.visualization.title", "Objects visualization");
         en.put("visualization.owners", "Object Owners");
         en.put("visualization.owner.id", "Owner ID");
+        en.put("server.info.command",
+                "Collection type: HashSet\nNumber of elements: %s");
 
         en.put("button.add", "Add");
         en.put("button.add.if.max", "Add if max");
@@ -572,6 +586,8 @@ public class GuiResources {
         en.put("dialog.enter.name.start", "Search by Name Prefix");
         en.put("dialog.select.script.file", "Select Script File");
         en.put("dialog.enter.minimal.point", "Enter minimal point");
+        en.put("message.script.completed", "Script execution completed");
+        en.put("message.errors", "Errors");
         DATA.put(GuiLocale.EN_IE, en);
     }
 
